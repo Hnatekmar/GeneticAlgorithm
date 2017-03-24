@@ -1,0 +1,11 @@
+{
+	"name": "geneticalgorithm",
+	"authors": [
+		"[Ales Lerch",
+		"Martin",
+		"Hnatek]"
+	],
+	"description": "Genetic algorithm with paralelism ",
+	"copyright": "Copyright © 2017, Ales Lerch",
+	"license": "MIT"
+}
