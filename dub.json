@@ -1,11 +1,9 @@
 {
-	"name": "geneticalgorithm",
+	"name": "geneticAlgorithm",
 	"authors": [
-		"[Ales Lerch",
-		"Martin",
-		"Hnatek]"
+		"Aleš Lerch",
+		"Martin Hnátek"
 	],
-	"description": "Genetic algorithm with paralelism ",
-	"copyright": "Copyright © 2017, Ales Lerch",
+	"description": "Genetic algorithm library with application that tests it (school project)",
 	"license": "MIT"
 }
