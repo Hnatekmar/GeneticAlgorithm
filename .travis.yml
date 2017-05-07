@@ -4,7 +4,7 @@ os:
   - osx
 
 before_install:
-    - if [ $TRAVIS_OS_NAME = linux ]; sudo apt-get install cmake libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev; fi
+    - if [ $TRAVIS_OS_NAME = linux ]; sudo apt-get install cmake libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev; else echo "OSX"; fi
 
 install:
   - git clone https://github.com/Jebbs/DSFMLC.git
