@@ -1,1 +1,3 @@
-d: dmd
+language: d
+d:
+	- dmd
