@@ -4,12 +4,10 @@ os:
   - osx
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install cmake; else brew install cmake; fi
+    - sudo apt-get install cmake libsfml-dev
 
 install:
   - git clone https://github.com/Jebbs/DSFMLC.git
   - cd DSFMLC
   - cmake .
   - sudo make install
-
-
