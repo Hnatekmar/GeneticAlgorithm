@@ -4,6 +4,10 @@
 		"Aleš Lerch",
 		"Martin Hnátek"
 	],
+    "lflags" : ["-LDSFMLC/lib"],
+	"dependencies": {
+        "dsfml:graphics": "~>2.1"
+	},
 	"description": "Genetic algorithm library with application that tests it (school project)",
 	"license": "MIT"
 }
