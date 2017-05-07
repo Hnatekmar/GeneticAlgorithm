@@ -14,5 +14,7 @@ install:
   - cmake .
   - sudo make install
   - cd ..
-  - export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
-  - sudo ldconfig /usr/local/lib
+  - 'if [ $TRAVIS_OS_NAME = linux ]; then
+          export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib;
+          sudo ldconfig /usr/local/lib;
+     fi'
