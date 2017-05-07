@@ -145,7 +145,5 @@ double fitness(BitArray array)
 
 int main(string[] argv)
 {
-	geneticAlgorithm(32 * 3, 0.0, 100, &fitness); 
-	getchar();
     return 0;
 }
