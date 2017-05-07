@@ -11,3 +11,4 @@ install:
   - cd DSFMLC
   - cmake .
   - sudo make install
+  - cd ..
