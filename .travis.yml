@@ -4,9 +4,7 @@ os:
   - osx
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git; else brew install git; fi
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install cmake; else brew install cmake; fi
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install build-essential; else brew install clang fi
 
 install:
   - git clone https://github.com/Jebbs/DSFMLC.git
