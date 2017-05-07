@@ -13,7 +13,7 @@
 
 # Executables
 *.exe
-geneticAlgorithm
+genetic_algorithm
 
 # DUB
 .dub
