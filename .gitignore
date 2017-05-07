@@ -27,3 +27,6 @@ docs/
 # IDEA
 *.iml
 .idea
+
+# Tmp files
+*.swp
