@@ -52,18 +52,20 @@ body // Tělo funkce
 	return chunks;
 }
 
-string printRepresentation(BitArray arr)
+string bitToString(BitArray arr)
 {
-	const int s_lenght = 5;
 	auto answer = "";
-	auto chunks = splitBitArray(arr, s_lenght);
+	auto chunks = splitBitArray(arr, 5);
 	foreach(chunk; chunks)
 	{
-		auto copy_chunk = false ~ (false ~ (false ~ chunk.dup));
-		auto chunkValues = cast(void[]) copy_chunk;
+		auto chunkValues = cast(void[]) chunk;
 		char[] chars = cast(char[]) chunkValues;
-		answer ~= 'A' + chars[0];
+        answer ~= 'A' + chars[0];
 	}
 	return answer;
 }
 
+void printRepresentation(BitArray arr)
+{
+    bitToString(arr).writeln;
+}

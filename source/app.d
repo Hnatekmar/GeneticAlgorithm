@@ -26,26 +26,29 @@ void draw()
 	}
 }
 
+double fitness(string word)(BitArray ar){
+    string test;
+    auto split_arr = ar.splitBitArray(5);
+    foreach (sa; split_arr)
+    {
+        auto c = (cast(char []) cast(void []) sa)[0];
+        test ~= 'A' + c;
+    }
+    import std.algorithm.comparison;
+    auto fit = levenshteinDistanceAndPath(word,test);
+    return fit[0];
+}
+
+void callWithString(string what)()
+{
+    geneticAlgorithm!(fitness!what, printRepresentation)(what.length * 5, 0.0, 20);
+}
+
 void main(string[] argv)
 {
 	if (argv.length > 1)
 	{
 		getoptions(argv);
 	}
-	double fitness(BitArray ar){
-		string test;
-		const string word = "hellow";
-		auto split_arr = ar.splitBitArray(5);
-		foreach (sa; split_arr)
-		{
-			auto c = (cast(char []) cast(void []) sa)[0];
-			test ~= 'A' + c;
-		}
-		import std.algorithm.comparison;
-		auto fit = levenshteinDistanceAndPath(word,test);
-		//test.writeln;
-		return fit[0];
-	}
-	auto neco = geneticAlgorithm!fitness(25,0.0,10);
-	neco.genome.printRepresentation.writeln;
+	callWithString!"ITJUSTWORKS"();
 }
