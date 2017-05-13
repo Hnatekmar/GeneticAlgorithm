@@ -3,28 +3,20 @@ module individual;
 import std.bitmanip;
 import std.random;
 
-alias FitnessFnType = double function(BitArray);
 
-class Individual
+class Individual(alias fitnessFn)
 {
     private
     {
     		BitArray representation;
-    		FitnessFnType fitnessFn;
     }
 
-    this(size_t size, FitnessFnType evaluator)
+    this(size_t size)
     {
     	foreach(i; 0..size)
     	{
     		representation ~= uniform(0, 2) == 1;
     	}
-    	fitnessFn = evaluator;
-    }
-
-    this(double function(BitArray) evaluator)
-    {
-    	fitnessFn = evaluator;
     }
 
     Individual mutate(float mutationRate)
