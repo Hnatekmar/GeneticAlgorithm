@@ -21,7 +21,7 @@ class Individual(alias fitnessFn)
 
     Individual mutate(float mutationRate)
     {
-    	Individual newIndividual = new Individual(fitnessFn);
+    	Individual!fitnessFn newIndividual = new Individual!fitnessFn(1);
     	newIndividual.representation = representation.dup();
    		foreach(i; 0..representation.length)
    		{
@@ -35,7 +35,7 @@ class Individual(alias fitnessFn)
 
     Individual crossover(Individual individual)
     {
-    	Individual newIndividual = new Individual(fitnessFn);
+    	Individual!fitnessFn newIndividual = new Individual!fitnessFn(1);
     	size_t gate = uniform(1, individual.representation.length - 1);
     	bool[] bitArr;
     	foreach(i; 0 .. representation.length)
