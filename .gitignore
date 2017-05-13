@@ -30,3 +30,4 @@ docs/
 
 # Tmp files
 *.swp
+dub.selections.json
