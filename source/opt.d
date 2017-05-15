@@ -4,7 +4,7 @@ void getoptions(string[] args)
 in
 {
 	assert(args.length > 1, "Inputed empty paramters");
-	assert(args.length > 5, "Opps too many argmunt inputed");
+	assert(args.length < 5, "Opps too many argmunt inputed");
 }
 body
 {
@@ -19,7 +19,6 @@ body
     "probability|p","Number(float) representing probability.", &probability,
     "input|i","Input file with data.", &data
 	);
-
   if (helpInformation.helpWanted)
   {
     defaultGetoptPrinter(

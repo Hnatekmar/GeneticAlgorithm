@@ -26,7 +26,7 @@ void draw()
 	}
 }
 
-double fitness(string word)(BitArray ar){
+double fitness(string word, BitArray ar){
     string test;
     auto split_arr = ar.splitBitArray(5);
     foreach (sa; split_arr)
@@ -41,7 +41,7 @@ double fitness(string word)(BitArray ar){
 
 void callWithString(string what)()
 {
-    geneticAlgorithm!(fitness!what, printRepresentation)(what.length * 5, 0.0, 20);
+	geneticAlgorithm!(fitness!what, printRepresentation)(what.length * 5, 0.0, 20,0.95);
 }
 
 void main(string[] argv)
@@ -50,5 +50,7 @@ void main(string[] argv)
 	{
 		getoptions(argv);
 	}
-	callWithString!"ITJUSTWORKS"();
+	auto word = "HELLO";
+	//draw();
+	geneticAlgorithm!((ar => fitness(word, ar)), printRepresentation)(word.length * 5, 0.0, 20, 0.95);
 }

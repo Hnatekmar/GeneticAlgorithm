@@ -18,23 +18,23 @@ Individual!fitness tournamentSelection(alias fitness)(Individual!fitness[] popul
 	return newPopulation.getFittest();
 }
 
-Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] population)
+Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] population,float mutation)
 {
-		Individual!fitness[] newPopulation;
-		newPopulation ~= population.getFittest!fitness();
-		foreach(i; 1..population.length)
-		{
-			auto a = population.tournamentSelection!fitness(population.length / 4);
-			auto b = population.tournamentSelection!fitness(population.length / 4);
-			newPopulation ~= a.crossover(b).mutate(0.95);
-		}
-		return newPopulation;
+	Individual!fitness[] newPopulation;
+	newPopulation ~= population.getFittest!fitness();
+	foreach(i; 1..population.length)
+	{
+		auto a = population.tournamentSelection!fitness(population.length / 4);
+		auto b = population.tournamentSelection!fitness(population.length / 4);
+		newPopulation ~= a.crossover(b).mutate(mutation);
+	}
+	return newPopulation;
 }
 
 
-Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize, double requiredFitness, size_t populationSize)
+Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize, double requiredFitness, size_t populationSize,float mutationRate)
 {
-    import std.stdio: writeln;
+	import std.stdio: writeln;
 	Individual!fitness[] current;
 	foreach(i; 0..populationSize)
 	{
@@ -43,7 +43,7 @@ Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize
 	size_t generationNumber = 0;
 	while(current.getFittest.fitness > requiredFitness)
 	{
-		current = current.evolvePopulation!fitness();
+		current = current.evolvePopulation!fitness(mutationRate);
 		if(generationNumber % 1000 == 0)
 		{
 			auto fittest = current.getFittest!fitness();
