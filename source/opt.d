@@ -19,6 +19,8 @@ body
     "probability|p","Number(float) representing probability.", &probability,
     "input|i","Input file with data.", &data
 	);
+	import std.stdio;
+	data.writeln;
   if (helpInformation.helpWanted)
   {
     defaultGetoptPrinter(
