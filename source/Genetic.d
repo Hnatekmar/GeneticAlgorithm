@@ -24,8 +24,8 @@ Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] popula
 	newPopulation ~= population.getFittest!fitness();
 	foreach(i; 1..population.length)
 	{
-		auto a = population.tournamentSelection!fitness(population.length / 4);
-		auto b = population.tournamentSelection!fitness(population.length / 4);
+		auto a = population.tournamentSelection!fitness(population.length / 2);
+		auto b = population.tournamentSelection!fitness(population.length / 2);
 		newPopulation ~= a.crossover(b).mutate(mutation);
 	}
 	return newPopulation;
@@ -44,13 +44,12 @@ Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize
 	while(current.getFittest.fitness > requiredFitness)
 	{
 		current = current.evolvePopulation!fitness(mutationRate);
-		if(generationNumber % 1000 == 0)
+		if(generationNumber % 100 == 0)
 		{
-			auto fittest = current.getFittest!fitness();
-			writeln("===== Generation: ", generationNumber, " =====");
-			print(fittest.genome());
-			writeln("Fitness: ", fittest.fitness);
-		}
+            auto fittest = current.getFittest!fitness();
+            writeln("===== Generation: ", generationNumber, " =====");
+            writeln("Fitness: ", fittest.fitness);
+        }
 		generationNumber += 1;
 	}
 	writeln("==== Best genom =====");
