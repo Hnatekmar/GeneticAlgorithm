@@ -19,7 +19,7 @@ class Individual(alias fitnessFn)
 		gen.seed(cast(uint)(ct.toUnixTime()));
 		foreach(i; 0..size)
 		{
-			representation ~= uniform(0, 2) == 1;
+			representation ~= uniform(0, 2, gen) == 1;
 		}
 	}
 
@@ -29,7 +29,7 @@ class Individual(alias fitnessFn)
 		newIndividual.representation = representation.dup();
 		foreach(i; 0..representation.length)
 		{
-			if(mutationRate < uniform(0.0L,1.0L,gen))
+			if(mutationRate < uniform01(gen))
 			{
 				newIndividual.representation[i] = uniform(0, 2) == 0;
 			}
