@@ -10,29 +10,20 @@ import std.exception;
 import std.traits;
 import std.math;
 
-struct CircleColor
+import Decoder;
+CircleShape toShape(ref BitArray genom)
 {
-    ubyte r, g, b;
-}
-
-struct CirclePos(T)
-{
-    T x, y;
-}
-
-struct CircleInfo(T)
-{
-    ubyte r, g, b;
-    T x, y;
-    ubyte radius;
-    ubyte transparency;
-    CircleShape toShape()
-    {
+        mixin(decoder!("genom", "ubyte", 8, "r",
+                                "ubyte", 8, "g",
+                                "ubyte", 8, "b",
+                                "ubyte", 8, "a",
+                                "ubyte", 8, "x",
+                                "ubyte", 8, "y",
+                                "ubyte", 5, "radius")());
         auto shape = new CircleShape(radius);
         shape.position = Vector2f(x, y);
-        shape.fillColor = Color(r, g, b, transparency);
+        shape.fillColor = Color(r, g, b, a);
         return shape;
-    }
 }
 
 double meanSquaredError(T)(const T[] a, const T[] b)
@@ -52,7 +43,7 @@ body
     {
         result += pow(a[index] - b[index], 2.0);
     }
-    return result / a.length;
+    return result;
 }
 
 class ImageFitness
@@ -78,13 +69,13 @@ class ImageFitness
 
     double opCall(ref BitArray genom)
     {
-        void[] objects = cast (void[]) genom;
         canvas.clear();
-        CircleInfo!ubyte* circles = cast (CircleInfo!ubyte*) objects.ptr;
-        auto numberOfCircles = genom.length / (CircleInfo!ubyte.sizeof * 8);
-        foreach(index; 0 .. numberOfCircles)
+
+        foreach(index; 0 .. (genom.length / 53))
         {
-            canvas.draw((*(circles + index)).toShape());
+            auto circle = subArray(genom, index * 53, index * 53 + 53);
+            auto shape = circle.toShape;
+            canvas.draw(shape);
         }
         Image source = canvas.getTexture().copyToImage();
         auto fitness = meanSquaredError(source.getPixelArray(), destination.getPixelArray());
@@ -101,41 +92,14 @@ class ImageFitness
 void draw()
 {
 	import core.thread;
-	import std.concurrency;
-	//core.thread.Mutex lock = new core.thread.Mutex();
 	CircleShape[] field;
 	auto shapeConvertor = (BitArray genom) =>
 	{
 	};
-    ImageFitness fitness = new ImageFitness("<IMAGE_PATH>");
-    const uint NUMBER_OF_CIRCLES = 10;
+    ImageFitness fitness = new ImageFitness("/home/martin/IdeaProjects/GeneticAlgorithm/test.png");
+    const uint NUMBER_OF_CIRCLES = 3;
     shapeConvertor(geneticAlgorithm!(fitness, shapeConvertor)
-       ((CircleInfo!ubyte).sizeof * 8 * NUMBER_OF_CIRCLES, 0.0, 40, 0.95).genome);
-
-	short vectorX = 255;
-	short vectorY = 255;
-	/*
-	auto window = new RenderWindow(VideoMode(vectorX,vectorY), "Genetický algoritmus");
-	//auto window = new RenderWindow(VideoMode(800,600),"Genetický algoritmus",style,settings);//too hot cpu
-	while (window.isOpen())
-	{
-		Event event;
-		while(window.pollEvent(event))
-		{
-			if(event.type == event.EventType.Closed)
-			{
-				window.close();
-			}
-		}
-		window.clear(Color.White);
-	    lock.lock();
-		foreach (circle;field)
-		{
-			window.draw(circle);
-		}
-	    lock.unlock();
-		window.display();
-	}*/
+       (53 * NUMBER_OF_CIRCLES, 0.0, 10, 0.95).genome);
 }
 
 void main(string[] argv)
