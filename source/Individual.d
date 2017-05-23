@@ -31,7 +31,7 @@ class Individual(alias fitnessFn)
 		{
 			if(mutationRate < uniform01(gen))
 			{
-				newIndividual.representation[i] = uniform(0, 2) == 0;
+				newIndividual.representation[i] = uniform(0, 2, gen) == 0;
 			}
 		}
 		return newIndividual;
