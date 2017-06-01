@@ -7,70 +7,46 @@ import dsfml.window;
 import dsfml.graphics;
 import std.random;
 import std.exception;
-import std.traits;
 import std.math;
+import util;
 
 import Decoder;
-
-struct CircleColor
-{
-    ubyte r, g, b, a;
-}
-
-struct Circle
-{
-    CircleColor color;
-    ubyte x, y;
-    ushort radius;
-}
-
-double distance(uint x0, uint y0, uint x1, uint y1)
-{
-    return sqrt(cast(double)((x0 - x1) ^^ 2 + (y0 - y1) ^^ 2));
-}
-
-Circle toShape(ref BitArray genom)
-{
-        mixin(decoder!("genom", "ubyte", 8, "r",
-                                "ubyte", 8, "g",
-                                "ubyte", 8, "b",
-                                "ubyte", 8, "x",
-                                "ubyte", 8, "y",
-                                "ushort", 9, "radius")());
-        Circle shape;
-        shape.color = CircleColor(r, g, b, 255);
-        shape.x = x;
-        shape.y = y;
-        shape.radius = radius;
-        return shape;
-}
-
-double meanSquaredError(T)(const T[] a, const T[] b)
-    if(isIntegral!T)
-in
-{
-    assert(a.length == b.length, "Pole musí být stejné delky");
-}
-out(result)
-{
-    assert(result >= 0.0, "Výsledek least squares je vždy kladný!");
-}
-body
-{
-    double result = 0.0;
-    foreach(index;0 .. a.length)
-    {
-        result += pow(a[index] - b[index], 2.0);
-    }
-    return result;
-}
 
 class ImageFitness
 {
     private
     {
+        immutable populationSize = 5 * 8 + 8;
         Image destination;
         double bestFitness = double.max;
+
+        struct CircleColor
+        {
+            ubyte r, g, b, a;
+        }
+
+        struct Circle
+        {
+            CircleColor color;
+            ubyte x, y;
+            ushort radius;
+        }
+
+        Circle toShape(ref BitArray genom)
+        {
+                mixin(decoder!("genom", "ubyte", 8, "r",
+                                        "ubyte", 8, "g",
+                                        "ubyte", 8, "b",
+                                        "ubyte", 8, "x",
+                                        "ubyte", 8, "y",
+                                        "ushort", 8, "radius")());
+                Circle shape;
+                shape.color = CircleColor(r, g, b, 255);
+                shape.x = x;
+                shape.y = y;
+                shape.radius = radius;
+                return shape;
+        }
     }
 
     this(string path)
@@ -82,15 +58,18 @@ class ImageFitness
         }
     }
 
-    void rasterize(Image image, Circle circle)
+    void rasterize(Image image, ref Circle circle)
     {
         auto size = image.getSize();
         foreach(x; (circle.x - circle.radius / 2) .. (circle.x + circle.radius / 2))
         {
             foreach(y; (circle.y - circle.radius / 2) .. (circle.y + circle.radius / 2))
             {
-                if(distance(x, y, circle.x, circle.y) <= circle.radius / 2 && x >= 0 && y >= 0 && x < size.x && y <
-                size.y)
+                if(distance(x, y, circle.x, circle.y) <= circle.radius / 2 &&
+                    x >= 0 &&
+                    y >= 0 &&
+                    x < size.x &&
+                    y < size.y)
                 {
                     auto color = circle.color;
                     auto pixelColor = image.getPixel(cast(uint) x, cast(uint) y);
@@ -109,10 +88,10 @@ class ImageFitness
         immutable auto size = destination.getSize();
         Image source = new Image();
         source.create(size.x, size.y, Color(0, 0, 0));
-        foreach(index; 0 .. (genom.length / 45))
+        foreach(index; 0 .. (genom.length / populationSize))
         {
-            auto circle = subArray(genom, index * 45, index * 45 + 45);
-            auto shape = circle.toShape;
+            auto circle = subArray(genom, index * populationSize, index * populationSize + populationSize);
+            auto shape = toShape(circle);
             rasterize(source, shape);
         }
         auto fitness = meanSquaredError(source.getPixelArray(), destination.getPixelArray());
@@ -128,15 +107,12 @@ class ImageFitness
 
 void draw()
 {
-	import core.thread;
-	CircleShape[] field;
 	auto shapeConvertor = (BitArray genom) =>
 	{
 	};
-    ImageFitness fitness = new ImageFitness("/home/martin/IdeaProjects/GeneticAlgorithm/plt-logo-red-diffuse.png");
+    ImageFitness fitness = new ImageFitness("<IMAGE PATH>");
     const uint NUMBER_OF_CIRCLES = 100;
-    shapeConvertor(geneticAlgorithm!(fitness, shapeConvertor)
-       (45 * NUMBER_OF_CIRCLES, 0.0, 25, 0.85).genome);
+    geneticAlgorithm!(fitness, shapeConvertor)(45 * NUMBER_OF_CIRCLES, 0.0, 25, 0.85);
 }
 
 void main(string[] argv)

@@ -32,7 +32,8 @@ Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] popula
 }
 
 
-Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize, double requiredFitness, size_t populationSize,float mutationRate)
+Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize, double requiredFitness,
+                                                                size_t populationSize, float mutationRate)
 {
 	import std.stdio: writeln;
 	Individual!fitness[] current;
