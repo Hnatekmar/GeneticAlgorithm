@@ -40,7 +40,8 @@ class Individual(alias fitnessFn)
 	Individual crossover(Individual individual)
 	{
 		Individual!fitnessFn newIndividual = new Individual!fitnessFn(1);
-		size_t gate = uniform(1, individual.representation.length - 1);
+		//size_t gate = uniform(1, individual.representation.length - 1);
+		size_t gate = individual.representation.length / 2;
 		bool[] bitArr;
 		foreach(i; 0 .. representation.length)
 		{

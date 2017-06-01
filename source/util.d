@@ -24,9 +24,9 @@ out(result)
 body
 {
     double result = 0.0;
-    foreach(index;0 .. a.length)
+    foreach(index; 0 .. a.length)
     {
-        result += pow(a[index] - b[index], 2.0);
+        result += (a[index] - b[index]) ^^ 2;
     }
     return result / a.length;
 }
@@ -34,6 +34,7 @@ body
 /**
  * Computes distance between two points in 2D euclidean space
  */
+pragma(inline, true):
 double distance(int x0, int y0, int x1, int y1)
 {
     return sqrt(cast(double)((x0 - x1) ^^ 2 + (y0 - y1) ^^ 2));

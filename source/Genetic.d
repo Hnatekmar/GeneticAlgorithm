@@ -24,8 +24,8 @@ Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] popula
 	newPopulation ~= population.getFittest!fitness();
 	foreach(i; 1..population.length)
 	{
-		auto a = population.tournamentSelection!fitness(3);
-		auto b = population.tournamentSelection!fitness(3);
+		auto a = population.tournamentSelection!fitness(12);
+		auto b = population.tournamentSelection!fitness(12);
 		newPopulation ~= a.crossover(b).mutate(mutation);
 	}
 	return newPopulation;

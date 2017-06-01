@@ -61,26 +61,48 @@ class ImageFitness
     void rasterize(Image image, ref Circle circle)
     {
         auto size = image.getSize();
+        auto pixels = image.getPixelArray().dup;
+        auto color = circle.color;
         foreach(x; (circle.x - circle.radius / 2) .. (circle.x + circle.radius / 2))
         {
             foreach(y; (circle.y - circle.radius / 2) .. (circle.y + circle.radius / 2))
             {
-                if(distance(x, y, circle.x, circle.y) <= circle.radius / 2 &&
+                if(distance(x, y, circle.x, circle.y) <= (circle.radius / 2) &&
                     x >= 0 &&
                     y >= 0 &&
                     x < size.x &&
                     y < size.y)
                 {
-                    auto color = circle.color;
-                    auto pixelColor = image.getPixel(cast(uint) x, cast(uint) y);
-                    image.setPixel(cast(uint) x, cast(uint) y, Color(
-                                  cast(uint) (pixelColor.r + color.r) / 2,
-                                  cast(uint) (pixelColor.g + color.g) / 2,
-                                  cast(uint) (pixelColor.b + color.b) / 2,
-                                  color.a));
+                    if(pixels[(y * size.x + x) * 4] != 0)
+                    {
+                      pixels[(y * size.x + x) * 4] = cast(uint) (pixels[(y * size.x + x) * 4] + color.r) / 2;
+                    }
+                    else
+                    {
+                      pixels[(y * size.x + x) * 4] = color.r;
+                    }
+
+                    if(pixels[(y * size.x + x) * 4 + 1] != 0)
+                    {
+                      pixels[(y * size.x + x) * 4 + 1] = cast(uint) (pixels[(y * size.x + x) * 4 + 1] + color.g) / 2;
+                    }
+                    else
+                    {
+                      pixels[(y * size.x + x) * 4 + 1] = color.g;
+                    }
+
+                    if(pixels[(y * size.x + x) * 4 + 2] != 0)
+                    {
+                      pixels[(y * size.x + x) * 4 + 2] = cast(uint) (pixels[(y * size.x + x) * 4 + 2] + color.b) / 2;
+                    }
+                    else
+                    {
+                      pixels[(y * size.x + x) * 4 + 2] = color.b;
+                    }
                 }
             }
         }
+        image.create(size.x, size.y, pixels);
     }
 
     double opCall(ref BitArray genom)
@@ -110,9 +132,9 @@ void draw()
 	auto shapeConvertor = (BitArray genom) =>
 	{
 	};
-    ImageFitness fitness = new ImageFitness("<IMAGE PATH>");
-    const uint NUMBER_OF_CIRCLES = 100;
-    geneticAlgorithm!(fitness, shapeConvertor)(45 * NUMBER_OF_CIRCLES, 0.0, 25, 0.85);
+    ImageFitness fitness = new ImageFitness("/home/martin/IdeaProjects/GeneticAlgorithm/test.png");
+    const uint NUMBER_OF_CIRCLES = 10;
+    geneticAlgorithm!(fitness, shapeConvertor)(45 * NUMBER_OF_CIRCLES, 0.0, 25, 0.96);
 }
 
 void main(string[] argv)
