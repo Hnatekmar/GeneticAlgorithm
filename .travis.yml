@@ -1,4 +1,5 @@
 language: d
+d: gdc
 os:
   - linux
   - osx
