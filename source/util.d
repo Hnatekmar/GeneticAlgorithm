@@ -2,6 +2,9 @@ module util;
 
 import std.traits;
 import std.math;
+import ldc.attributes;
+
+
 /**
  * Calculates meanSquared error from two arrays
  * Example:
@@ -11,7 +14,8 @@ import std.math;
  * meanSquaredError(a, b).writeln;
  * ---
  */
-double meanSquaredError(T)(const T[] a, const T[] b)
+@fastmath
+pure double meanSquaredError(T)(in T[] a, in T[] b)
     if(isIntegral!T)
 in
 {
@@ -24,7 +28,7 @@ out(result)
 body
 {
     double result = 0.0;
-    foreach(index; 0 .. a.length)
+    foreach(size_t index; 0 .. a.length)
     {
         result += (a[index] - b[index]) ^^ 2;
     }
@@ -34,8 +38,9 @@ body
 /**
  * Computes distance between two points in 2D euclidean space
  */
+@nogc @fastmath
 pragma(inline, true):
-double distance(int x0, int y0, int x1, int y1)
+pure double distance(int x0, int y0, int x1, int y1)
 {
     return sqrt(cast(double)((x0 - x1) ^^ 2 + (y0 - y1) ^^ 2));
 }
