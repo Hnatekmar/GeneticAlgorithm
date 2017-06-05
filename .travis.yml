@@ -1,5 +1,5 @@
 language: d
-d: gdc
+d: ldc
 os:
   - linux
   - osx
