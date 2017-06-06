@@ -115,7 +115,7 @@ class ImageFitness
         {
             foreach(y; top..bottom)
             {
-                if ((x - circle.x) * (x - circle.x) + (y - circle.y) * (y - circle.y) <= rad2 * rad2)
+                if ((x - circle.x) ^^ 2 + (y - circle.y) ^^ 2 <= rad2 ^^ 2)
                 {
                     auto idx = (y * image.w + x) * 4;
 
