@@ -15,9 +15,10 @@ import Decoder;
 import core.simd;
 struct GeneticImage
 {
-    uint w;
-    uint h;
+    immutable uint w;
+    immutable uint h;
     ubyte[] pixels;
+
     this(uint width, uint height)
     in
     {
@@ -54,7 +55,6 @@ class ImageFitness
 {
     private
     {
-        immutable populationSize = 3 * 8 + 3 * 6;
         Image destination;
         double bestFitness = double.max;
 
@@ -70,22 +70,25 @@ class ImageFitness
             ushort radius;
         }
 
-        Circle toShape(ref BitArray genom)
+        Circle toShape(ref BitArray genom, size_t offset)
         {
-                mixin(decoder!("genom", "ubyte", 8, "r",
-                                        "ubyte", 8, "g",
-                                        "ubyte", 8, "b",
-                                        "ubyte", 6, "x",
-                                        "ubyte", 6, "y",
-                                        "ubyte", 5, "radius")());
-                Circle shape;
-                shape.color = CircleColor(r, g, b, 255);
-                shape.x = x;
-                shape.y = y;
-                shape.radius = radius;
-                return shape;
+            mixin decoder!("genom", "offset", 0,
+                        "ubyte", 8, "r",
+                        "ubyte", 8, "g",
+                        "ubyte", 8, "b",
+                        "ubyte", 6, "x",
+                        "ubyte", 6, "y",
+                        "ubyte", 5, "radius");
+            Circle shape;
+            shape.color = CircleColor(r, g, b, 255);
+            shape.x = x;
+            shape.y = y;
+            shape.radius = radius;
+            return shape;
         }
     }
+
+    static immutable populationSize = 3 * 8 + 2 * 6 + 5;
 
     this(string path)
     {
@@ -97,49 +100,38 @@ class ImageFitness
     }
 
     import ldc.attributes;
-    @fastmath void rasterize(ref GeneticImage image, in Circle[] circles)
+    @fastmath void rasterizeCircle(ref GeneticImage image, in Circle circle)
     {
-        foreach(ref circle; circles)
+        import std.algorithm : min;
+
+        auto color = circle.color;
+        auto rad2 = circle.radius / 2;
+        auto left = circle.x < rad2 ? 0 : circle.x - rad2;
+        auto right = min(circle.x + rad2 + 1, image.w);
+        auto top = circle.y < rad2 ? 0 : circle.y - rad2;
+        auto bottom = min(circle.y + rad2 + 1, image.h);
+
+        foreach(x; left..right)
         {
-            auto color = circle.color;
-            foreach(x; (circle.x - circle.radius / 2) .. (circle.x + circle.radius / 2))
+            foreach(y; top..bottom)
             {
-                foreach(y; (circle.y - circle.radius / 2) .. (circle.y + circle.radius / 2))
+                if ((x - circle.x) * (x - circle.x) + (y - circle.y) * (y - circle.y) <= rad2 * rad2)
                 {
-                    if(distance(x, y, circle.x, circle.y) <= (circle.radius / 2) &&
-                        x >= 0 &&
-                        x < image.w &&
-                        y >= 0 &&
-                        y < image.h)
-                    {
-                        if(image.pixels[(y * image.w + x) * 4] != 0)
-                        {
-                          image.pixels[(y * image.w + x) * 4] = (image.pixels[(y * image.w + x) * 4] + color.r) / 2;
-                        }
-                        else
-                        {
-                          image.pixels[(y * image.w + x) * 4] = color.r;
-                        }
+                    auto idx = (y * image.w + x) * 4;
 
-                        if(image.pixels[(y * image.w + x) * 4 + 1] != 0)
-                        {
-                          image.pixels[(y * image.w + x) * 4 + 1] = (image.pixels[(y * image.w + x) * 4 + 1] + color.g) / 2;
-                        }
-                        else
-                        {
-                          image.pixels[(y * image.w + x) * 4 + 1] = color.g;
-                        }
+                    auto pixel = image.pixels[idx];
+                    if (pixel != 0) image.pixels[idx] = (pixel + color.r) / 2;
+                    else image.pixels[idx] = color.r;
 
-                        if(image.pixels[(y * image.w + x) * 4 + 2] != 0)
-                        {
-                          image.pixels[(y * image.w + x) * 4 + 2] = (image.pixels[(y * image.w + x) * 4 + 2] + color.b) / 2;
-                        }
-                        else
-                        {
-                          image.pixels[(y * image.w + x) * 4 + 2] = color.b;
-                        }
-                        image.pixels[(y * image.w + x) * 4 + 3] = 255;
-                    }
+                    pixel = image.pixels[idx + 1];
+                    if (pixel != 0) image.pixels[idx + 1] = (pixel + color.g) / 2;
+                    else image.pixels[idx + 1] = color.r;
+
+                    pixel = image.pixels[idx + 2];
+                    if (pixel != 0) image.pixels[idx + 2] = (pixel + color.b) / 2;
+                    else image.pixels[idx + 2] = color.r;
+
+                    image.pixels[idx + 3] = 255;
                 }
             }
         }
@@ -152,11 +144,9 @@ class ImageFitness
         Circle[] shapes;
         foreach(index; 0 .. (genom.length / populationSize))
         {
-            auto circle = subArray(genom, index * populationSize, index * populationSize + populationSize);
-            auto shape = toShape(circle);
-            shapes ~= shape;
+            auto shape = toShape(genom, index * populationSize);
+            rasterizeCircle(source, shape);
         }
-        rasterize(source, shapes);
         auto fitness = meanSquaredError(source.pixels, destination.getPixelArray());
         if(fitness < bestFitness)
         {
@@ -170,26 +160,26 @@ class ImageFitness
 
 void draw()
 {
-	auto shapeConvertor = (BitArray genom) =>
-	{
-	};
-    ImageFitness fitness = new ImageFitness("/home/martin/IdeaProjects/GeneticAlgorithm/mona.jpeg");
+    auto shapeConvertor = (BitArray genom) =>
+    {
+    };
+    ImageFitness fitness = new ImageFitness("mona.jpeg");
     const uint NUMBER_OF_CIRCLES = 250;
-    geneticAlgorithm!(fitness, shapeConvertor)((3 * 8 + 2 * 6 + 5) * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
+    geneticAlgorithm!(fitness, shapeConvertor)(ImageFitness.populationSize * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
 }
 
 void main(string[] argv)
 {
-	if (argv.length > 1)
-	{
-		getoptions(argv);
-	}
-	try
-	{
+    if (argv.length > 1)
+    {
+        getoptions(argv);
+    }
+    try
+    {
         draw();
-	}
-	catch(ErrnoException err)
-	{
-	    err.msg.writeln;
-	}
+    }
+    catch(ErrnoException err)
+    {
+        err.msg.writeln;
+    }
 }
