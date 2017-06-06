@@ -125,11 +125,11 @@ class ImageFitness
 
                     pixel = image.pixels[idx + 1];
                     if (pixel != 0) image.pixels[idx + 1] = (pixel + color.g) / 2;
-                    else image.pixels[idx + 1] = color.r;
+                    else image.pixels[idx + 1] = color.g;
 
                     pixel = image.pixels[idx + 2];
                     if (pixel != 0) image.pixels[idx + 2] = (pixel + color.b) / 2;
-                    else image.pixels[idx + 2] = color.r;
+                    else image.pixels[idx + 2] = color.b;
 
                     image.pixels[idx + 3] = 255;
                 }
