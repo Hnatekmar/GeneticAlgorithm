@@ -62,25 +62,14 @@ pure BitArray mergeBitArray(ulong n, ref BitArray arrA, ref BitArray arrB) {
 }
 
 unittest {
-    auto a = BitArray([
-            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    ]);
-    auto b = BitArray([
-            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-    ]);
+    import std.array : array;
+    import std.format : format;
+    import std.range : chain, repeat;
+
+    auto a = BitArray(repeat(true, 80).array);
+    auto b = BitArray(repeat(false, 80).array);
 
     void test(ulong n) {
-        import std.array : array;
-        import std.format : format;
-        import std.range : chain, repeat;
         const expected = BitArray(repeat(true, n).chain(repeat(false, a.length - n)).array);
         const merged = mergeBitArray(n, a, b);
         assert(merged == expected, "Expected %s trues, got %s".format(n, merged));
