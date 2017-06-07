@@ -78,7 +78,7 @@ class ImageFitness
                         "ubyte", 8, "b",
                         "ubyte", 6, "x",
                         "ubyte", 6, "y",
-                        "ubyte", 5, "radius");
+                        "ubyte", 4, "radius");
             Circle shape;
             shape.color = CircleColor(r, g, b, 255);
             shape.x = x;
@@ -88,7 +88,7 @@ class ImageFitness
         }
     }
 
-    static immutable populationSize = 3 * 8 + 2 * 6 + 5;
+    static immutable populationSize = 3 * 8 + 2 * 6 + 4;
 
     this(string path)
     {
@@ -104,17 +104,16 @@ class ImageFitness
         import std.algorithm : min;
 
         auto color = circle.color;
-        auto rad2 = circle.radius / 2;
-        auto left = circle.x < rad2 ? 0 : circle.x - rad2;
-        auto right = min(circle.x + rad2 + 1, image.w);
-        auto top = circle.y < rad2 ? 0 : circle.y - rad2;
-        auto bottom = min(circle.y + rad2 + 1, image.h);
+        auto left = circle.x < circle.radius ? 0 : circle.x - circle.radius;
+        auto right = min(circle.x + circle.radius + 1, image.w);
+        auto top = circle.y < circle.radius ? 0 : circle.y - circle.radius;
+        auto bottom = min(circle.y + circle.radius + 1, image.h);
 
         foreach(x; left..right)
         {
             foreach(y; top..bottom)
             {
-                if ((x - circle.x) ^^ 2 + (y - circle.y) ^^ 2 <= rad2 ^^ 2)
+                if ((x - circle.x) ^^ 2 + (y - circle.y) ^^ 2 <= circle.radius ^^ 2)
                 {
                     auto idx = (y * image.w + x) * 4;
 
