@@ -47,18 +47,20 @@ class Individual(alias fitnessFn)
 		return newIndividual;
 	}
 
-	Individual crossover(Individual individual)
-	{
-		size_t gate = individual.representation.length / 2;
-		bool[] bitArr;
-		foreach(i; 0 .. representation.length)
-		{
-			bitArr ~= i <= gate ? representation[i] : individual.representation[i];
-		}
-		assert(bitArr.length == representation.length());
-		Individual!fitnessFn newIndividual = new Individual!fitnessFn(BitArray(bitArr), false);
-		return newIndividual;
-	}
+    Individual crossover(Individual that)
+    in {
+        assert(this.representation.length == that.representation.length, "Individuals to crossover must have a representation of the same length");
+    }
+    out (result) {
+        assert(result.representation.length == this.representation.length, "The result of a crossover must have a representation of the same length as its parents");
+    }
+    body {
+        import util : mergeBitArray;
+
+        const gate = this.representation.length / 2;
+        auto newRep = mergeBitArray(gate, this.representation, that.representation);
+        return new Individual(newRep, false);
+    }
 
 	@property double fitness()
 	{
