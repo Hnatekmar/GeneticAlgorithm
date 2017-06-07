@@ -99,8 +99,7 @@ class ImageFitness
         }
     }
 
-    import ldc.attributes;
-    @fastmath void rasterizeCircle(ref GeneticImage image, in Circle circle)
+    void rasterizeCircle(ref GeneticImage image, in Circle circle)
     {
         import std.algorithm : min;
 

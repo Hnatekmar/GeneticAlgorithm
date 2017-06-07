@@ -1,8 +1,8 @@
 module util;
 
+import std.bitmanip : BitArray;
 import std.traits;
 import std.math;
-import ldc.attributes;
 
 
 /**
@@ -14,7 +14,6 @@ import ldc.attributes;
  * meanSquaredError(a, b).writeln;
  * ---
  */
-@fastmath
 pure double meanSquaredError(T)(in T[] a, in T[] b)
     if(isIntegral!T)
 in
@@ -38,9 +37,60 @@ body
 /**
  * Computes distance between two points in 2D euclidean space
  */
-@nogc @fastmath
-pragma(inline, true):
+@nogc
+pragma(inline, true)
 pure double distance(int x0, int y0, int x1, int y1)
 {
     return sqrt(cast(double)((x0 - x1) ^^ 2 + (y0 - y1) ^^ 2));
+}
+
+/**
+ * Takes the first n bits from arrA and length - n bits from arrB and smashes
+ * them together.
+ */
+pure BitArray mergeBitArray(ulong n, ref BitArray arrA, ref BitArray arrB) {
+    const sizetBits = size_t.sizeof * 8;
+    const splitWord = n / sizetBits;
+
+    auto a = cast(size_t[]) arrA;
+    auto b = cast(size_t[]) arrB;
+
+    auto newArr = a[0..splitWord] ~ b[splitWord..$];
+    const aMask = (size_t(1) << (n % sizetBits)) - 1;
+    newArr[splitWord] = (a[splitWord] & aMask) | (b[splitWord] & ~aMask);
+    return BitArray(newArr, arrA.length);
+}
+
+unittest {
+    auto a = BitArray([
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+    ]);
+    auto b = BitArray([
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+    ]);
+
+    void test(ulong n) {
+        import std.array : array;
+        import std.format : format;
+        import std.range : chain, repeat;
+        const expected = BitArray(repeat(true, n).chain(repeat(false, a.length - n)).array);
+        const merged = mergeBitArray(n, a, b);
+        assert(merged == expected, "Expected %s trues, got %s".format(n, merged));
+    }
+
+    test(0);
+    test(2);
+    test(31);
+    test(32);
+    test(63);
+    test(64);
+    test(65);
 }
