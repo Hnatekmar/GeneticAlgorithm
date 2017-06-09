@@ -8,14 +8,15 @@ env:
   - TRAVIS_NODE_VERSION="7"
 
 before_install:
-    - npm install -g eclint
-    - eclint check
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           sudo apt-get install npm cmake libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev
            libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev;
        fi'
 
 install:
+  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+  - npm install -g eclint
+  - eclint check
   - git clone https://github.com/Jebbs/DSFMLC.git
   - cd DSFMLC
   - cmake .
