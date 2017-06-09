@@ -6,14 +6,14 @@ import ldc.attributes;
 
 
 /**
- * Calculates meanSquared error from two arrays
- * Example:
- * ---
- * int[] a = [0, 1, 2];
- * int[] b = [0, 1, 3];
- * meanSquaredError(a, b).writeln;
- * ---
- */
+* Calculates meanSquared error from two arrays
+* Example:
+* ---
+* int[] a = [0, 1, 2];
+* int[] b = [0, 1, 3];
+* meanSquaredError(a, b).writeln;
+* ---
+*/
 @fastmath
 pure double meanSquaredError(T)(in T[] a, in T[] b)
     if(isIntegral!T)
@@ -36,8 +36,8 @@ body
 }
 
 /**
- * Computes distance between two points in 2D euclidean space
- */
+* Computes distance between two points in 2D euclidean space
+*/
 @nogc @fastmath
 pragma(inline, true):
 pure double distance(int x0, int y0, int x1, int y1)

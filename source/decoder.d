@@ -5,7 +5,9 @@ import std.range;
 import std.meta;
 import std.conv;
 
-
+/**
+* Splits BitArray into smaller BitArray
+*/
 BitArray subArray(ref BitArray array, size_t from, size_t to)
 in
 {
@@ -22,8 +24,8 @@ body
 }
 
 /**
-  * Generic decoder for extracting data
-  */
+* Generic decoder for extracting data
+*/
 string decoder(string name, T...)(size_t index = 0)
 {
     static if(T.length != 0)

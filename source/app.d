@@ -8,10 +8,9 @@ import std.random;
 import std.exception;
 import std.math;
 import util;
-
 import decoder;
 
-import core.simd;
+
 struct GeneticImage
 {
     uint w;
@@ -113,29 +112,29 @@ class ImageFitness
                     {
                         if(image.pixels[(y * image.w + x) * 4] != 0)
                         {
-                          image.pixels[(y * image.w + x) * 4] = (image.pixels[(y * image.w + x) * 4] + color.r) / 2;
+                        image.pixels[(y * image.w + x) * 4] = (image.pixels[(y * image.w + x) * 4] + color.r) / 2;
                         }
                         else
                         {
-                          image.pixels[(y * image.w + x) * 4] = color.r;
+                        image.pixels[(y * image.w + x) * 4] = color.r;
                         }
 
                         if(image.pixels[(y * image.w + x) * 4 + 1] != 0)
                         {
-                          image.pixels[(y * image.w + x) * 4 + 1] = (image.pixels[(y * image.w + x) * 4 + 1] + color.g) / 2;
+                        image.pixels[(y * image.w + x) * 4 + 1] = (image.pixels[(y * image.w + x) * 4 + 1] + color.g) / 2;
                         }
                         else
                         {
-                          image.pixels[(y * image.w + x) * 4 + 1] = color.g;
+                        image.pixels[(y * image.w + x) * 4 + 1] = color.g;
                         }
 
                         if(image.pixels[(y * image.w + x) * 4 + 2] != 0)
                         {
-                          image.pixels[(y * image.w + x) * 4 + 2] = (image.pixels[(y * image.w + x) * 4 + 2] + color.b) / 2;
+                        image.pixels[(y * image.w + x) * 4 + 2] = (image.pixels[(y * image.w + x) * 4 + 2] + color.b) / 2;
                         }
                         else
                         {
-                          image.pixels[(y * image.w + x) * 4 + 2] = color.b;
+                        image.pixels[(y * image.w + x) * 4 + 2] = color.b;
                         }
                         image.pixels[(y * image.w + x) * 4 + 3] = 255;
                     }
@@ -169,9 +168,9 @@ class ImageFitness
 
 void draw()
 {
-	auto shapeConvertor = (BitArray genom) =>
-	{
-	};
+    auto shapeConvertor = (BitArray genom) =>
+    {
+    };
     ImageFitness fitness = new ImageFitness("/home/martin/IdeaProjects/GeneticAlgorithm/mona.jpeg");
     const uint NUMBER_OF_CIRCLES = 250;
     geneticAlgorithm!(fitness, shapeConvertor)((3 * 8 + 2 * 6 + 5) * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
@@ -179,16 +178,16 @@ void draw()
 
 void main(string[] argv)
 {
-	if (argv.length > 1)
-	{
-		getoptions(argv);
-	}
-	try
-	{
+    if (argv.length > 1)
+    {
+        getoptions(argv);
+    }
+    try
+    {
         draw();
-	}
-	catch(ErrnoException err)
-	{
-	    err.msg.writeln;
-	}
+    }
+    catch(ErrnoException err)
+    {
+        err.msg.writeln;
+    }
 }
