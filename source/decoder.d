@@ -1,4 +1,4 @@
-module Decoder;
+module decoder;
 
 import std.bitmanip;
 import std.range;
