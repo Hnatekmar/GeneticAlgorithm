@@ -1,7 +1,6 @@
 import opt;
 import genetic;
 import std.stdio;
-import string_gen;
 import std.bitmanip;
 import dsfml.window;
 import dsfml.graphics;
@@ -10,7 +9,7 @@ import std.exception;
 import std.math;
 import util;
 
-import Decoder;
+import decoder;
 
 import core.simd;
 struct GeneticImage
@@ -72,7 +71,7 @@ class ImageFitness
 
         Circle toShape(ref BitArray genom)
         {
-                mixin(decoder!("genom", "ubyte", 8, "r",
+                mixin(decoder.decoder!("genom", "ubyte", 8, "r",
                                         "ubyte", 8, "g",
                                         "ubyte", 8, "b",
                                         "ubyte", 6, "x",
