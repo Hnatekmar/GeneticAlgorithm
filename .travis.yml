@@ -5,7 +5,7 @@ os:
   - osx
 
 env:
-  - TRAVIS_NODE_VERSION="4"
+  - TRAVIS_NODE_VERSION="7"
 
 before_install:
     - npm install -g eclint
