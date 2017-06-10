@@ -72,15 +72,19 @@ class ImageFitness
 
         Circle toShape(ref BitArray genom, size_t offset)
         {
+            ubyte extendColor(ubyte x) {
+                import std.conv : to;
+                return cast(ubyte) ((x << 5) | (x << 2) | (x >> 1));
+            }
             mixin decoder!("genom", "offset", 0,
-                        "ubyte", 8, "r",
-                        "ubyte", 8, "g",
-                        "ubyte", 8, "b",
+                        "ubyte", 3, "r",
+                        "ubyte", 3, "g",
+                        "ubyte", 3, "b",
                         "ubyte", 6, "x",
                         "ubyte", 6, "y",
                         "ubyte", 4, "radius");
             Circle shape;
-            shape.color = CircleColor(r, g, b, 255);
+            shape.color = CircleColor(extendColor(r), extendColor(g), extendColor(b), 255);
             shape.x = x;
             shape.y = y;
             shape.radius = radius;
