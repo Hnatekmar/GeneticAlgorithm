@@ -9,23 +9,6 @@ env:
 
 before_install:
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          sudo apt-get install npm cmake libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev
-           libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev;
-       fi'
-
-install:
-    - git clone https://github.com/Jebbs/DSFMLC.git
-    - cd DSFMLC
-    - cmake .
-    - sudo make install
-    - cd ..
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-            export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib;
-            sudo ldconfig /usr/local/lib;
-       fi'
-
-after_script:
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
           rm -rf -f ~/.nvm;
        fi'
 
@@ -57,3 +40,21 @@ after_script:
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           rm -rf ~/nvm;
        fi'
+
+before_install:
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
+          sudo apt-get install npm cmake libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev
+           libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev;
+       fi'
+
+install:
+    - git clone https://github.com/Jebbs/DSFMLC.git
+    - cd DSFMLC
+    - cmake .
+    - sudo make install
+    - cd ..
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
+            export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib;
+            sudo ldconfig /usr/local/lib;
+       fi'
+
