@@ -13,24 +13,28 @@ before_install:
            libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev;
        fi'
 
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
+          rm -rf ~/.nvm
+          git clone https://github.com/creationix/nvm.git ~/.nvm
+          cd ~/.nvm
+          git checkout `git describe --abbrev=0 --tags`
+          source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+       fi'
+
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
+          npm install -g eclint
+       fi'
+
 install:
-  - 'if [ $TRAVIS_OS_NAME = linux ]; then
-        rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
-     fi'
-
-  - 'if [ $TRAVIS_OS_NAME = linux ]; then
-        npm install -g eclint
-     fi'
-
-  - 'if [ $TRAVIS_OS_NAME = linux ]; then
-        eclint check
-     fi'
-  - git clone https://github.com/Jebbs/DSFMLC.git
-  - cd DSFMLC
-  - cmake .
-  - sudo make install
-  - cd ..
-  - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib;
-          sudo ldconfig /usr/local/lib;
-     fi'
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
+          eclint check
+       fi'
+    - git clone https://github.com/Jebbs/DSFMLC.git
+    - cd DSFMLC
+    - cmake .
+    - sudo make install
+    - cd ..
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
+            export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib;
+            sudo ldconfig /usr/local/lib;
+       fi'
