@@ -39,7 +39,7 @@ body
 * Computes distance between two points in 2D euclidean space
 */
 @nogc @fastmath
-  pragma(inline, true):
+pragma(inline, true):
 pure double distance(int x0, int y0, int x1, int y1)
 {
     return sqrt(cast(double)((x0 - x1) ^^ 2 + (y0 - y1) ^^ 2));
