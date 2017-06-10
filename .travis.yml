@@ -10,6 +10,8 @@ env:
 before_install:
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           rm -rf -f ~/.nvm;
+          mkdir eclint;
+          cd eclint;
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
@@ -39,6 +41,8 @@ before_install:
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           rm -rf ~/nvm;
+          cd ..;
+          rm -rf eclint;
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
