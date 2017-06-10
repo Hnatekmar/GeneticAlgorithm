@@ -52,5 +52,8 @@ after_script:
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           eclint check **/*.d;
+       fi'
+
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
           rm -rf ~/nvm;
        fi'

@@ -27,7 +27,7 @@ out(result)
 }
 body
 {
-  double result = 0.0;
+    double result = 0.0;
     foreach(size_t index; 0 .. a.length)
     {
         result += (a[index] - b[index]) ^^ 2;
