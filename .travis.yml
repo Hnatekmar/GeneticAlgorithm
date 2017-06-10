@@ -14,31 +14,32 @@ before_install:
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          rm -rf -f ~/.nvm
+          rm -rf -f ~/.nvm;
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          git clone https://github.com/creationix/nvm.git ~/.nvm
+          git clone https://github.com/creationix/nvm.git ~/.nvm;
        fi'
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          cd ~/.nvm
-       fi'
-
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          git checkout `git describe --abbrev=0 --tags`
+          cd ~/.nvm;
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+          git checkout `git describe --abbrev=0 --tags`;
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          npm install -g eclint
+          source ~/.nvm/nvm.sh;
+          nvm install $TRAVIS_NODE_VERSION;
+       fi'
+
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
+          npm install -g eclint;
        fi'
 
 install:
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          eclint check
+          eclint check;
        fi'
     - git clone https://github.com/Jebbs/DSFMLC.git
     - cd DSFMLC
