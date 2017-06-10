@@ -1,24 +1,9 @@
-module Decoder;
+module decoder;
 
 import std.bitmanip;
 import std.range;
 import std.meta;
 import std.conv;
-
-BitArray subArray(ref BitArray array, size_t from, size_t to)
-in
-{
-    assert(from < to, "From has to be smaller than to and they cannot equal");
-}
-body
-{
-    BitArray result;
-    for(size_t index = from; index < to; index++)
-    {
-        result ~= array[index];
-    }
-    return result;
-}
 
 T decodeBits(T)(ref BitArray arr, size_t offset, size_t length)
 in {
@@ -70,8 +55,8 @@ unittest {
 }
 
 /**
-  * Generic decoder for extracting data
-  */
+ * Generic decoder for extracting data
+ */
 mixin template decoder(string name, string startName, size_t fieldOffset, T...)
 {
     static if(T.length != 0)

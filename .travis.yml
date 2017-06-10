@@ -4,18 +4,33 @@ os:
   - linux
   - osx
 
+env:
+  - TRAVIS_NODE_VERSION="7"
+
 before_install:
+
+    - 'if [ $TRAVIS_OS_NAME = "osx" ]; then
+          npm install -g eclint;
+       fi'
+
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          sudo apt-get install cmake libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev;
+          sudo apt-get install npm cmake libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev
+           libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev;
        fi'
 
 install:
-  - git clone https://github.com/Jebbs/DSFMLC.git
-  - cd DSFMLC
-  - cmake .
-  - sudo make install
-  - cd ..
-  - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib;
-          sudo ldconfig /usr/local/lib;
-     fi'
+    - git clone https://github.com/Jebbs/DSFMLC.git
+    - cd DSFMLC
+    - cmake .
+    - sudo make install
+    - cd ..
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
+            export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib;
+            sudo ldconfig /usr/local/lib;
+       fi'
+
+
+    - 'if [ $TRAVIS_OS_NAME = "osx" ]; then
+          eclint check **/*.d;
+       fi'
+

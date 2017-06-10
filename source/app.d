@@ -1,7 +1,6 @@
 import opt;
 import genetic;
 import std.stdio;
-import string_gen;
 import std.bitmanip;
 import dsfml.window;
 import dsfml.graphics;
@@ -9,11 +8,10 @@ import std.random;
 import std.exception;
 import std.math;
 import util;
+import decoder;
 import simdutil;
-
-import Decoder;
-
 import core.simd;
+
 struct GeneticImage
 {
     immutable uint w;
