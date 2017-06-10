@@ -14,7 +14,7 @@ before_install:
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          rm -rf ~/.nvm
+          rm -rf -f ~/.nvm
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
