@@ -38,6 +38,7 @@ Individual!fitness rouletteSelection(alias fitness)(Individual!fitness[] populat
 Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] population,float mutation)
 {
     Individual!fitness[] newPopulation;
+    newPopulation.reserve(population.length);
     newPopulation ~= population.getFittest;
     foreach(i; 1..population.length)
     {
@@ -53,7 +54,8 @@ Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize
 {
     import std.stdio: writeln;
     Individual!fitness[] current;
-    foreach(i; 1..populationSize)
+    current.reserve(populationSize);
+    foreach(i; 0..populationSize)
     {
         current ~= new Individual!fitness(genomSize);
     }
