@@ -8,43 +8,8 @@ env:
   - TRAVIS_NODE_VERSION="7"
 
 before_install:
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          rm -rf -f ~/.nvm;
-          mkdir eclint;
-          cd eclint;
-       fi'
-
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          git clone https://github.com/creationix/nvm.git ~/.nvm;
-       fi'
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          cd ~/.nvm;
-       fi'
-
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          git checkout `git describe --abbrev=0 --tags`;
-       fi'
-
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          source ~/.nvm/nvm.sh;
-          nvm install $TRAVIS_NODE_VERSION;
-       fi'
-
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          npm install -g eclint;
-          cd ..;
-       fi'
-
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          eclint check **/*.d;
-       fi'
-
-    - 'if [ $TRAVIS_OS_NAME = linux ]; then
-          rm -rf ~/nvm;
-          cd ..;
-          rm -rf eclint;
-       fi'
-
+    - npm install -g eclint
+    - eclint check **/*.d
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           sudo apt-get install npm cmake libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev
            libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev libudev-dev libxcb-image0-dev libjpeg-dev libflac-dev;
