@@ -35,6 +35,7 @@ before_install:
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           npm install -g eclint;
+          cd ..;
        fi'
 
 install:
