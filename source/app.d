@@ -9,6 +9,7 @@ import std.random;
 import std.exception;
 import std.math;
 import util;
+import simdutil;
 
 import Decoder;
 
@@ -17,7 +18,7 @@ struct GeneticImage
 {
     immutable uint w;
     immutable uint h;
-    ubyte[] pixels;
+    ubyte16[] pixels;
 
     this(uint width, uint height)
     in
@@ -29,7 +30,10 @@ struct GeneticImage
     {
         w = width;
         h = height;
-        pixels = new ubyte[w * h * 4];
+        pixels = new ubyte16[w * h / 4];
+        foreach(pixelPack; pixels) {
+            pixelPack = [0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255];
+        }
     }
 
     this(Image sfmlImage)
@@ -39,14 +43,14 @@ struct GeneticImage
     }
     body
     {
-        pixels = sfmlImage.getPixelArray().dup;
+        pixels.unpacked[] = sfmlImage.getPixelArray()[];
     }
 
     Image toSFMLImage()
     {
         Image result = new Image();
-        auto castedPixels = cast(ubyte[]) pixels;
-        result.create(w, h, castedPixels);
+        auto unpackedPixels = pixels.unpacked;
+        result.create(w, h, unpackedPixels);
         return result;
     }
 }
@@ -107,34 +111,57 @@ class ImageFitness
     {
         import std.algorithm : min;
 
-        auto color = circle.color;
         auto left = circle.x < circle.radius ? 0 : circle.x - circle.radius;
         auto right = min(circle.x + circle.radius + 1, image.w);
         auto top = circle.y < circle.radius ? 0 : circle.y - circle.radius;
         auto bottom = min(circle.y + circle.radius + 1, image.h);
 
-        foreach(x; left..right)
+        // Make sure the x positions are nicely aligned
+        left = left & ~3;
+        right = (right + 3) & ~3;
+
+        ubyte16 color;
+        color.unpacked[] = [circle.color.r, circle.color.g, circle.color.b, 255, circle.color.r, circle.color.g, circle.color.b, 255, circle.color.r, circle.color.g, circle.color.b, 255, circle.color.r, circle.color.g, circle.color.b, 255];
+
+        uint4 radSquared = circle.radius ^^ 2;
+        ubyte16 zero = 0;
+
+        foreach(y; top..bottom)
         {
-            foreach(y; top..bottom)
+            // A lot of the following will go negative even though it's unsigned,
+            // but ultimately it doesn't matter, because we'll be squaring it anyway.
+            uint4 xPixel = [0, 1, 2, 3];
+            xPixel += left - circle.x;
+            uint4 ySquared = (y - circle.y) ^^ 2;
+
+            ubyte16 alphaMask = [0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255];
+
+            auto yIdx = y * image.w / 4;
+
+            for (auto x = left; x < right; x += 4, xPixel += 4)
             {
-                if ((x - circle.x) ^^ 2 + (y - circle.y) ^^ 2 <= circle.radius ^^ 2)
-                {
-                    auto idx = (y * image.w + x) * 4;
+                auto idx = yIdx + x / 4;
+                ubyte16 pixels = image.pixels[idx];
 
-                    auto pixel = image.pixels[idx];
-                    if (pixel != 0) image.pixels[idx] = (pixel + color.r) / 2;
-                    else image.pixels[idx] = color.r;
+                // (x - circle.x) ^^ 2
+                uint4 xSquared = __simd(XMM.PMULLD, xPixel, xPixel);
 
-                    pixel = image.pixels[idx + 1];
-                    if (pixel != 0) image.pixels[idx + 1] = (pixel + color.g) / 2;
-                    else image.pixels[idx + 1] = color.g;
+                // all ones for kept pixels and vice versa
+                ubyte16 keepMask = __simd(XMM.PCMPGTD, xSquared + ySquared, radSquared);
 
-                    pixel = image.pixels[idx + 2];
-                    if (pixel != 0) image.pixels[idx + 2] = (pixel + color.b) / 2;
-                    else image.pixels[idx + 2] = color.b;
+                // all ones for pexes written directly, zeros for pexes mixed
+                ubyte16 directMask = __simd(XMM.PCMPEQB, pixels, zero);
 
-                    image.pixels[idx + 3] = 255;
-                }
+                // color of the circle mixed with the previous color
+                ubyte16 mixedColor = __simd(XMM.PAVGB, color, pixels);
+
+                // color as if the circle were present
+                ubyte16 circleColor = (directMask & color) | (~directMask & mixedColor);
+
+                // final color
+                ubyte16 finalColor = (keepMask & pixels) | (~keepMask & circleColor);
+
+                image.pixels[idx] = finalColor;
             }
         }
     }
@@ -149,7 +176,7 @@ class ImageFitness
             auto shape = toShape(genom, index * populationSize);
             rasterizeCircle(source, shape);
         }
-        auto fitness = meanSquaredError(source.pixels, destination.getPixelArray());
+        auto fitness = meanSquaredError(source.pixels.unpacked, destination.getPixelArray());
         if(fitness < bestFitness)
         {
             source.toSFMLImage.saveToFile("last.png");
