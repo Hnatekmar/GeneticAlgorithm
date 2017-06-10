@@ -94,7 +94,7 @@ class ImageFitness
         }
     }
 
-    static immutable populationSize = 3 * 8 + 2 * 6 + 4;
+    static immutable populationSize = 3 * 3 + 2 * 6 + 4;
 
     this(string path)
     {
@@ -191,7 +191,7 @@ void draw()
     {
     };
     ImageFitness fitness = new ImageFitness("mona.jpeg");
-    const uint NUMBER_OF_CIRCLES = 250;
+    const uint NUMBER_OF_CIRCLES = 500;
     geneticAlgorithm!(fitness, shapeConvertor)(ImageFitness.populationSize * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
 }
 
