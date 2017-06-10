@@ -40,6 +40,7 @@ before_install:
 install:
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           eclint check **/*.d;
+          rm -rf ~/nvm;
        fi'
     - git clone https://github.com/Jebbs/DSFMLC.git
     - cd DSFMLC
