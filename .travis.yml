@@ -15,9 +15,20 @@ before_install:
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
           rm -rf ~/.nvm
+       fi'
+
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
           git clone https://github.com/creationix/nvm.git ~/.nvm
+       fi'
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
           cd ~/.nvm
+       fi'
+
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
           git checkout `git describe --abbrev=0 --tags`
+       fi'
+
+    - 'if [ $TRAVIS_OS_NAME = linux ]; then
           source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
        fi'
 
