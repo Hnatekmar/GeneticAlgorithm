@@ -52,7 +52,7 @@ Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] popula
 Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize, double requiredFitness,
                                                                 size_t populationSize, float mutationRate)
 {
-    import std.stdio: writeln;
+    import std.stdio: writeln, stdout;
     Individual!fitness[] current;
     current.reserve(populationSize);
     foreach(i; 0..populationSize)
@@ -68,6 +68,7 @@ Individual!fitness geneticAlgorithm(alias fitness, alias print)(size_t genomSize
         if(fittest.fitness < bestFitness)
         {
             writeln(generationNumber, " => ", fittest.fitness);
+            stdout.flush();
             bestFitness = fittest.fitness;
         }
         generationNumber += 1;
