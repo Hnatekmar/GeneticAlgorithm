@@ -4,14 +4,19 @@ import std.bitmanip;
 import std.random;
 import std.datetime;
 
-
 class Individual(alias fitnessFn)
 {
     private
     {
-        Mt19937 gen;
         BitArray representation;
         double calculatedFitness;
+        static Mt19937 gen;
+    }
+
+    static this()
+    {
+        auto ct = Clock.currTime();
+        gen.seed(cast(uint)(ct.toUnixTime()));
     }
 
     this(BitArray array, bool recalculateFitness = true)
@@ -19,8 +24,6 @@ class Individual(alias fitnessFn)
         representation = array;
         if(recalculateFitness)
             calculatedFitness = fitnessFn(array);
-        auto ct = Clock.currTime();
-        gen.seed(cast(uint)(ct.toUnixTime()));
     }
 
     this(size_t size)
@@ -39,7 +42,7 @@ class Individual(alias fitnessFn)
         {
             if(mutationRate < uniform01(gen))
             {
-                newRepresentation[i] = uniform(0, 2, gen) == 0;
+                newRepresentation[i] = !newRepresentation[i];
             }
         }
         assert(newRepresentation.length() == representation.length());
@@ -50,10 +53,10 @@ class Individual(alias fitnessFn)
     Individual crossover(Individual individual)
     {
         size_t gate = individual.representation.length / 2;
-        bool[] bitArr;
+        bool[] bitArr = new bool[individual.representation.length()];
         foreach(i; 0 .. representation.length)
         {
-            bitArr ~= i <= gate ? representation[i] : individual.representation[i];
+            bitArr[i] = i <= gate ? representation[i] : individual.representation[i];
         }
         assert(bitArr.length == representation.length());
         Individual!fitnessFn newIndividual = new Individual!fitnessFn(BitArray(bitArr), false);

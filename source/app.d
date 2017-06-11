@@ -75,7 +75,7 @@ class ImageFitness
                                         "ubyte", 8, "b",
                                         "ubyte", 6, "x",
                                         "ubyte", 6, "y",
-                                        "ubyte", 5, "radius")());
+                                        "ubyte", 6, "radius")());
                 Circle shape;
                 shape.color = CircleColor(r, g, b, 255);
                 shape.x = x;
@@ -171,8 +171,8 @@ void draw()
     auto shapeConvertor = (BitArray genom) =>
     {
     };
-    ImageFitness fitness = new ImageFitness("/home/martin/IdeaProjects/GeneticAlgorithm/mona.jpeg");
-    const uint NUMBER_OF_CIRCLES = 250;
+    ImageFitness fitness = new ImageFitness("mona.jpeg");
+    const uint NUMBER_OF_CIRCLES = 500;
     geneticAlgorithm!(fitness, shapeConvertor)((3 * 8 + 2 * 6 + 5) * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
 }
 
