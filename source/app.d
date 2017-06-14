@@ -94,8 +94,7 @@ class ImageFitness
         }
     }
 
-    import ldc.attributes;
-    @fastmath void rasterize(ref GeneticImage image, in Circle[] circles)
+    void rasterize(ref GeneticImage image, in Circle[] circles)
     {
         foreach(ref circle; circles)
         {

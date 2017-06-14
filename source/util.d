@@ -2,8 +2,6 @@ module util;
 
 import std.traits;
 import std.math;
-import ldc.attributes;
-
 
 /**
 * Calculates meanSquared error from two arrays
@@ -14,7 +12,6 @@ import ldc.attributes;
 * meanSquaredError(a, b).writeln;
 * ---
 */
-@fastmath
 pure double meanSquaredError(T)(in T[] a, in T[] b)
     if(isIntegral!T)
 in
@@ -38,7 +35,7 @@ body
 /**
 * Computes distance between two points in 2D euclidean space
 */
-@nogc @fastmath
+@nogc
 pragma(inline, true):
 pure double distance(int x0, int y0, int x1, int y1)
 {
