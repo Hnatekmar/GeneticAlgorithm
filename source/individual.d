@@ -52,15 +52,10 @@ class Individual(alias fitnessFn)
 
     Individual crossover(Individual individual)
     {
-        size_t gate = individual.representation.length / 2;
-        bool[] bitArr = new bool[individual.representation.length()];
-        foreach(i; 0 .. representation.length)
-        {
-            bitArr[i] = i <= gate ? representation[i] : individual.representation[i];
-        }
-        assert(bitArr.length == representation.length());
-        Individual!fitnessFn newIndividual = new Individual!fitnessFn(BitArray(bitArr), false);
-        return newIndividual;
+        size_t gate = uniform(2, individual.representation.length, gen);
+        BitArray bitMask = BitArray(new bool[individual.representation.length()]);
+        bitMask |= ~BitArray(new bool[gate]);
+        return new Individual!fitnessFn((individual.representation & bitMask) | (representation & ~bitMask), false);
     }
 
     @property double fitness()
