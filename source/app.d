@@ -97,10 +97,10 @@ void draw()
 	const string name = "mona.jpg";
 	if ( (pwd ~ "/" ~ name).exists){
     ImageFitness fitness = new ImageFitness(name);
-    const uint NUMBER_OF_CIRCLES = 10;
-    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
+    const uint NUMBER_OF_RECTANGLES = 20;
+    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, 0.99);
 	}else{
-		writeln("ERROR: Wrong input!");
+		writeln("ERROR: File " ~ pwd ~ "/" ~ name ~ " not found.");
 	}
 }
 
