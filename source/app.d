@@ -2,82 +2,38 @@ import opt;
 import genetic;
 import std.stdio;
 import std.bitmanip;
-import dsfml.window;
-import dsfml.graphics;
 import std.random;
 import std.exception;
 import std.math;
 import util;
 import decoder;
-
-
-struct GeneticImage
-{
-    uint w;
-    uint h;
-    ubyte[] pixels;
-    this(uint width, uint height)
-    in
-    {
-        assert(w % 4 == 0, "Šířka musí být dělitelná 4!");
-        assert(h % 4 == 0, "Výška musí být dělitelná 4!");
-    }
-    body
-    {
-        w = width;
-        h = height;
-        pixels = new ubyte[w * h * 4];
-    }
-
-    this(Image sfmlImage)
-    in
-    {
-        assert(sfmlImage !is null, "Obrázek nesmí být null!");
-    }
-    body
-    {
-        pixels = sfmlImage.getPixelArray().dup;
-    }
-
-    Image toSFMLImage()
-    {
-        Image result = new Image();
-        auto castedPixels = cast(ubyte[]) pixels;
-        result.create(w, h, castedPixels);
-        return result;
-    }
-}
+import dlib.image;
+import dlib.image.color: color4;
 
 class ImageFitness
 {
-    immutable populationSize = 3 * 8 + 2 * 6 + 4;
+    immutable populationSize = 32 + 3 * 6;
     private
     {
-        Image destination;
+        SuperImage destination;
         double bestFitness = double.max;
-
-        struct CircleColor
-        {
-            ubyte r, g, b;
-        }
 
         struct Circle
         {
-            CircleColor color;
+            Color4f color;
             ubyte x, y;
             ushort radius;
         }
 
         Circle toShape(ref BitArray genom)
         {
-                mixin(decoder.decoder!("genom", "ubyte", 8, "r",
-                                        "ubyte", 8, "g",
-                                        "ubyte", 8, "b",
+                mixin(decoder.decoder!("genom",
+                                        "int",  32, "color",
                                         "ubyte", 6, "x",
                                         "ubyte", 6, "y",
-                                        "ubyte", 4, "radius")());
+                                        "ubyte", 6, "radius")());
                 Circle shape;
-                shape.color = CircleColor(r, g, b);
+                shape.color = color4(color);
                 shape.x = x;
                 shape.y = y;
                 shape.radius = radius;
@@ -87,14 +43,10 @@ class ImageFitness
 
     this(string path)
     {
-        destination = new Image();
-        if(!destination.loadFromFile(path))
-        {
-            throw new ErrnoException("Vstupní obrázek se nepodařilo nahrát!");
-        }
+        destination = loadImage(path);
     }
 
-    void rasterize(ref GeneticImage image, in Circle[] circles)
+    void rasterize(ref SuperImage image, in Circle[] circles)
     {
         foreach(ref circle; circles)
         {
@@ -105,37 +57,11 @@ class ImageFitness
                 {
                     if(distance(x, y, circle.x, circle.y) <= (circle.radius / 2) &&
                         x >= 0 &&
-                        x < image.w &&
+                        x < image.width &&
                         y >= 0 &&
-                        y < image.h)
+                        y < image.height)
                     {
-                        if(image.pixels[(y * image.w + x) * 4] != 0)
-                        {
-                            image.pixels[(y * image.w + x) * 4] = (image.pixels[(y * image.w + x) * 4] + color.r) / 2;
-                        }
-                        else
-                        {
-                            image.pixels[(y * image.w + x) * 4] = color.r;
-                        }
-
-                        if(image.pixels[(y * image.w + x) * 4 + 1] != 0)
-                        {
-                            image.pixels[(y * image.w + x) * 4 + 1] = (image.pixels[(y * image.w + x) * 4 + 1] + color.g) / 2;
-                        }
-                        else
-                        {
-                            image.pixels[(y * image.w + x) * 4 + 1] = color.g;
-                        }
-
-                        if(image.pixels[(y * image.w + x) * 4 + 2] != 0)
-                        {
-                            image.pixels[(y * image.w + x) * 4 + 2] = (image.pixels[(y * image.w + x) * 4 + 2] + color.b) / 2;
-                        }
-                        else
-                        {
-                            image.pixels[(y * image.w + x) * 4 + 2] = color.b;
-                        }
-                        image.pixels[(y * image.w + x) * 4 + 3] = 255;
+                        image[x, y] = alphaOver(image[x, y], color);
                     }
                 }
             }
@@ -144,8 +70,7 @@ class ImageFitness
 
     double opCall(ref BitArray genom)
     {
-        immutable auto size = destination.getSize();
-        GeneticImage source = GeneticImage(size.x, size.y);
+        SuperImage source = image(destination.width, destination.height);
         Circle[] shapes;
         foreach(index; 0 .. (genom.length / populationSize))
         {
@@ -154,10 +79,10 @@ class ImageFitness
             shapes ~= shape;
         }
         rasterize(source, shapes);
-        auto fitness = meanSquaredError(source.pixels, destination.getPixelArray());
+        auto fitness = meanSquaredError(source.data, destination.data);
         if(fitness < bestFitness)
         {
-            source.toSFMLImage.saveToFile("last.png");
+            source.saveImage("last.png");
             bestFitness = fitness;
         }
         return fitness;
@@ -167,8 +92,8 @@ class ImageFitness
 
 void draw()
 {
-    ImageFitness fitness = new ImageFitness("mona1.jpeg");
-    const uint NUMBER_OF_CIRCLES = 400;
+    ImageFitness fitness = new ImageFitness("mona4.jpg");
+    const uint NUMBER_OF_CIRCLES = 10;
     geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
 }
 

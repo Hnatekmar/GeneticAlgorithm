@@ -6,7 +6,8 @@
 	],
     "lflags" : ["-LDSFMLC/lib"],
 	"dependencies": {
-        "dsfml:graphics": "~>2.1"
+        "dsfml:graphics": "~>2.1",
+		"dlib": "~>0.11.1"
 	},
 	"description": "Genetic algorithm library with application that tests it (school project)",
 	"license": "MIT"
