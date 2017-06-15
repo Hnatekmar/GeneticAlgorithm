@@ -167,12 +167,9 @@ class ImageFitness
 
 void draw()
 {
-    auto shapeConvertor = (BitArray genom) =>
-    {
-    };
     ImageFitness fitness = new ImageFitness("mona.jpeg");
     const uint NUMBER_OF_CIRCLES = 500;
-    geneticAlgorithm!(fitness, shapeConvertor)((3 * 8 + 2 * 6 + 5) * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
+    geneticAlgorithm!(fitness)((3 * 8 + 2 * 6 + 5) * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
 }
 
 void main(string[] argv)
