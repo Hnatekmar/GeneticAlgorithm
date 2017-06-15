@@ -50,15 +50,15 @@ struct GeneticImage
 
 class ImageFitness
 {
+    immutable populationSize = 3 * 8 + 2 * 6 + 4;
     private
     {
-        immutable populationSize = 3 * 8 + 3 * 6;
         Image destination;
         double bestFitness = double.max;
 
         struct CircleColor
         {
-            ubyte r, g, b, a;
+            ubyte r, g, b;
         }
 
         struct Circle
@@ -75,9 +75,9 @@ class ImageFitness
                                         "ubyte", 8, "b",
                                         "ubyte", 6, "x",
                                         "ubyte", 6, "y",
-                                        "ubyte", 6, "radius")());
+                                        "ubyte", 4, "radius")());
                 Circle shape;
-                shape.color = CircleColor(r, g, b, 255);
+                shape.color = CircleColor(r, g, b);
                 shape.x = x;
                 shape.y = y;
                 shape.radius = radius;
@@ -111,29 +111,29 @@ class ImageFitness
                     {
                         if(image.pixels[(y * image.w + x) * 4] != 0)
                         {
-                        image.pixels[(y * image.w + x) * 4] = (image.pixels[(y * image.w + x) * 4] + color.r) / 2;
+                            image.pixels[(y * image.w + x) * 4] = (image.pixels[(y * image.w + x) * 4] + color.r) / 2;
                         }
                         else
                         {
-                        image.pixels[(y * image.w + x) * 4] = color.r;
+                            image.pixels[(y * image.w + x) * 4] = color.r;
                         }
 
                         if(image.pixels[(y * image.w + x) * 4 + 1] != 0)
                         {
-                        image.pixels[(y * image.w + x) * 4 + 1] = (image.pixels[(y * image.w + x) * 4 + 1] + color.g) / 2;
+                            image.pixels[(y * image.w + x) * 4 + 1] = (image.pixels[(y * image.w + x) * 4 + 1] + color.g) / 2;
                         }
                         else
                         {
-                        image.pixels[(y * image.w + x) * 4 + 1] = color.g;
+                            image.pixels[(y * image.w + x) * 4 + 1] = color.g;
                         }
 
                         if(image.pixels[(y * image.w + x) * 4 + 2] != 0)
                         {
-                        image.pixels[(y * image.w + x) * 4 + 2] = (image.pixels[(y * image.w + x) * 4 + 2] + color.b) / 2;
+                            image.pixels[(y * image.w + x) * 4 + 2] = (image.pixels[(y * image.w + x) * 4 + 2] + color.b) / 2;
                         }
                         else
                         {
-                        image.pixels[(y * image.w + x) * 4 + 2] = color.b;
+                            image.pixels[(y * image.w + x) * 4 + 2] = color.b;
                         }
                         image.pixels[(y * image.w + x) * 4 + 3] = 255;
                     }
@@ -167,9 +167,9 @@ class ImageFitness
 
 void draw()
 {
-    ImageFitness fitness = new ImageFitness("mona4.jpg");
-    const uint NUMBER_OF_CIRCLES = 100;
-    geneticAlgorithm!(fitness)((3 * 8 + 2 * 6 + 5) * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
+    ImageFitness fitness = new ImageFitness("mona1.jpeg");
+    const uint NUMBER_OF_CIRCLES = 400;
+    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
 }
 
 void main(string[] argv)
@@ -178,12 +178,5 @@ void main(string[] argv)
     {
         getoptions(argv);
     }
-    try
-    {
-        draw();
-    }
-    catch(ErrnoException err)
-    {
-        err.msg.writeln;
-    }
+    draw();
 }
