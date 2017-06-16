@@ -109,6 +109,6 @@ void main(string[] argv)
     if (argv.length > 1)
     {
 			auto data = getOptions(argv);
-			draw(to!string(data["input"])/*,to!float(data["mutate"])*/);
+			draw(data.input, data.probability);
     }
 }
