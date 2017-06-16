@@ -54,11 +54,11 @@ class Individual(alias fitnessFn)
     {
         size_t gate = uniform(2, individual.representation.length - 1, gen);
         BitArray bitMask = BitArray(new bool[individual.representation.length()]);
-        size_t count = 0;
-        while(count < gate)
+        size_t it = 0;
+        while(it < gate)
         {
-            bitMask[count] = true;
-            count++;
+            bitMask[it] = true;
+            it++;
         }
         return new Individual!fitnessFn((individual.representation & bitMask) | (representation & ~bitMask), false);
     }
