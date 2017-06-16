@@ -10,6 +10,7 @@ import decoder;
 import dlib.image;
 import dlib.image.color: color4;
 import std.file;
+import std.conv;
 
 class ImageFitness
 {
@@ -91,16 +92,15 @@ class ImageFitness
     }
 }
 
-void draw()
+void draw(string input,float mutation = 0.99)
 {
 	string pwd = getcwd();
-	const string name = "mona.jpg";
-	if ( (pwd ~ "/" ~ name).exists){
-    ImageFitness fitness = new ImageFitness(name);
+	if ( (pwd ~ "/" ~ input).exists){
+    ImageFitness fitness = new ImageFitness(input);
     const uint NUMBER_OF_RECTANGLES = 20;
-    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, 0.99);
+    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, mutation);
 	}else{
-		writeln("ERROR: File " ~ pwd ~ "/" ~ name ~ " not found.");
+		writeln("ERROR: File " ~ pwd ~ "/" ~ input ~ " not found.");
 	}
 }
 
@@ -108,7 +108,7 @@ void main(string[] argv)
 {
     if (argv.length > 1)
     {
-        getoptions(argv);
+			auto data = getOptions(argv);
+			draw(to!string(data["input"])/*,to!float(data["mutate"])*/);
     }
-    draw();
 }

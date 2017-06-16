@@ -1,6 +1,7 @@
 import std.getopt;
+import std.variant;
 
-void getoptions(string[] args)
+Variant[string] getOptions(string[] args)
 in
 {
     assert(args.length > 1, "Inputed empty paramters");
@@ -8,19 +9,24 @@ in
 }
 body
 {
-    string data;
+    string input;
     int count_epoch;
     int mutation_number;
+		Variant[string] data;
     float probability = 0.0;
     auto helpInformation = getopt(
         args,
         "epoch|e","Counting epoch, number(int).", &count_epoch,
         "mutation|m","Mutation, how large mutation should be(int).", &mutation_number,
         "probability|p","Number(float) representing probability.", &probability,
-        "input|i","Input file with data.", &data
+        "input|i","Input file with data.", &input
     );
-    import std.stdio;
-    data.writeln;
+
+		data["count"] = count_epoch;
+		data["mutate"] = mutation_number;
+		data["prob"] = probability;
+		data["input"] = input;
+
     if (helpInformation.helpWanted)
     {
     defaultGetoptPrinter(
@@ -28,4 +34,5 @@ body
             helpInformation.options
         );
     }
+	return data;
 }
