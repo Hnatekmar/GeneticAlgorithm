@@ -9,7 +9,6 @@ import util;
 import decoder;
 import dlib.image;
 import dlib.image.color: color4;
-import std.file;
 import std.conv;
 
 class ImageFitness
@@ -94,21 +93,18 @@ class ImageFitness
 
 void draw(string input,float mutation = 0.99)
 {
-	string pwd = getcwd();
-	if ( (pwd ~ "/" ~ input).exists){
-    ImageFitness fitness = new ImageFitness(input);
-    const uint NUMBER_OF_RECTANGLES = 20;
-    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, mutation);
-	}else{
-		writeln("ERROR: File " ~ pwd ~ "/" ~ input ~ " not found.");
-	}
+	ImageFitness fitness = new ImageFitness(input);
+	const uint NUMBER_OF_RECTANGLES = 20;
+	geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, mutation);
 }
 
 void main(string[] argv)
 {
-    if (argv.length > 1)
-    {
+	try
+	{
 			auto data = getOptions(argv);
 			draw(data.input, data.probability);
-    }
+	}catch (NoInputParams e){
+		writeln("getOptions returned exception: ",e);
+	}
 }

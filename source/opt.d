@@ -1,15 +1,16 @@
 import std.getopt;
 import std.variant;
+import std.file;
 
 
 struct Options {
 
-		int countEpoch;
+		ulong countEpoch;
 		float mutation;
 		string input;
 		float probability;
 
-		this(string inp, float mutate, int count, float prob)
+		this(string inp, float mutate, ulong  count, float prob)
 		{
 			this.input = inp;
 			this.mutation = mutate;
@@ -18,18 +19,25 @@ struct Options {
 		}
 }
 
+class NoInputParams : Exception
+{
+    this(string msg, string file = __FILE__, size_t line = __LINE__) {
+        super(msg, file, line);
+    }
+}
+
 Options getOptions(string[] args)
 in
 {
-    assert(args.length > 1, "Inputed empty paramters");
     assert(args.length < 5, "Opps too many argmunt inputed");
 }
 body
 {
+		
     string input;
-    int countEpoch;
-    int mutationNumber;
-    float probability = 0.0;
+    ulong countEpoch;
+    float mutationNumber;
+    float probability = 1.0;
     auto helpInformation = getopt(
         args,
         "epoch|e","Counting epoch, number(int).", &countEpoch,
@@ -37,6 +45,11 @@ body
         "probability|p","Number(float) representing probability.", &probability,
         "input|i","Input file with data.", &input
     );
+
+		if((getcwd() ~ "/" ~ input).exists == false)
+		{
+			throw new NoInputParams("Inputed image file " ~ input ~ " not found");
+		}
 
 		auto data = Options(input, mutationNumber, countEpoch, probability);
 
