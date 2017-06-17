@@ -14,7 +14,8 @@
 			"name": "genetic",
 			"targetType": "executable",
 			"excludedSourceFiles": ["source/benchmark.d"],
-			"targetName": "genetic"
+			"targetName": "genetic",
+			"mainSourceFile": "source/app.d"
 		},
 		{
 			"name": "benchmark",
@@ -27,7 +28,8 @@
 			"subConfigurations": {
 				"ggplotd": "ggplotd-gtk"
 			},
-			"buildRequirements": ["disallowOptimization"]
+			"buildRequirements": ["disallowOptimization"],
+			"mainSourceFile": "source/benchmark.d"
 		}
 	],
 	"description": "Genetic algorithm library with application that tests it (school project)",
