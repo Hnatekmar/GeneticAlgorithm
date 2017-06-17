@@ -34,3 +34,7 @@ install:
           eclint check **/*.d;
        fi'
 
+script:
+    - dub test --compiler=$DC --config=genetic
+    - dub test --compiler=$DC --config=benchmark
+
