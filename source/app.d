@@ -78,8 +78,7 @@ class ImageFitness
         foreach(index; 0 .. numberOfShapesInPopulation)
         {
             auto circle = subArray(genom, index * populationSize, index * populationSize + populationSize);
-            auto shape = toShape(circle);
-            shapes ~= shape;
+            shapes ~= toShape(circle);
         }
         rasterize(source, shapes);
         auto fitness = meanSquaredError(source.data, destination.data);
