@@ -15,10 +15,10 @@ in
 }
 body
 {
-    BitArray result;
+    BitArray result = BitArray(new bool[to - from]);
     for(size_t index = from; index < to; index++)
     {
-        result ~= array[index];
+        result[index - from] = array[index];
     }
     return result;
 }
