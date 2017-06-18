@@ -31,7 +31,7 @@ Options getOptions(string[] args)
     string input;
     ulong countEpoch = 10_000;
     float mutationNumber = 0.99f;
-    float probability = 0.99;
+    float probability = 0.01;
     bool forever = false;
     try
     {
