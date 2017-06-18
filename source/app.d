@@ -31,7 +31,7 @@ class ImageFitness
                                         "int",  32, "color",
                                         "ubyte", 6, "x",
                                         "ubyte", 6, "y",
-                                        "ubyte", 6, "radius")());
+                                        "ubyte", 5, "radius")());
                 Circle shape;
                 shape.color = color4(color);
                 shape.x = x;
@@ -50,18 +50,19 @@ class ImageFitness
     {
         foreach(ref circle; circles)
         {
-            auto color = circle.color;
-            foreach(x; (circle.x - circle.radius / 2) .. (circle.x + circle.radius / 2))
+            import std.algorithm.comparison: min, max;
+            auto fromX = max(circle.x - circle.radius, 0);
+            auto toX = min(circle.x + circle.radius, image.width());
+            auto fromY = max(circle.y - circle.radius, 0);
+            auto toY = min(circle.y + circle.radius, image.height());
+
+            foreach(x; fromX .. toX)
             {
-                foreach(y; (circle.y - circle.radius / 2) .. (circle.y + circle.radius / 2))
+                foreach(y; fromY .. toY)
                 {
-                    if(distance(x, y, circle.x, circle.y) <= (circle.radius / 2) &&
-                        x >= 0 &&
-                        x < image.width &&
-                        y >= 0 &&
-                        y < image.height)
+                    if((x - circle.x) ^^ 2 + (y - circle.y) ^^ 2 <= circle.radius ^^ 2)
                     {
-                        image[x, y] = alphaOver(image[x, y], color);
+                        image[x, y] = alphaOver(image[x, y], circle.color);
                     }
                 }
             }
@@ -93,7 +94,7 @@ class ImageFitness
 void draw()
 {
     ImageFitness fitness = new ImageFitness("mona4.jpg");
-    const uint NUMBER_OF_CIRCLES = 10;
+    const uint NUMBER_OF_CIRCLES = 100;
     geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
 }
 
