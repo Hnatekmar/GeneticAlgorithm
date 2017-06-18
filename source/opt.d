@@ -1,5 +1,4 @@
 import std.getopt;
-import std.variant;
 import std.file;
 import std.stdio;
 import core.stdc.stdlib;
@@ -33,15 +32,18 @@ Options getOptions(string[] args)
     ulong countEpoch;
     float mutationNumber = 0.99f;
     float probability;
+    bool forever = false;
     auto helpInformation = getopt(
             args,
-            "input|i","This is the image you MUST input", &input,
             "epoch|e","Counting epoch, number (ulong).", &countEpoch,
             "probability|p","Number (float) representing probability.", &probability,
-            "mutation|m","Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber
+            "mutation|m","Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
+            "forever|f", "Run program forever", &forever,
+            std.getopt.config.required,
+            "input|i","This is the image you MUST input", &input,
             );
 
-    if((!input.exists && input != "") || (mutationNumber >= 0.0f && mutationNumber <= 1.0f) == false)
+    if((!input.exists && input != "") || !(mutationNumber >= 0.0f && mutationNumber <= 1.0f))
     {
         helpInformation.helpWanted = true;
         if (!input.exists)
@@ -66,6 +68,6 @@ Options getOptions(string[] args)
     {
         exit(-1);
     }
-    auto opt = Options(input, mutationNumber, countEpoch, probability);
-	return opt;
+
+    return Options(input, mutationNumber, countEpoch, probability);
 }
