@@ -9,7 +9,6 @@ import util;
 import decoder;
 import dlib.image;
 import dlib.image.color: color4;
-import std.conv;
 
 class ImageFitness
 {
@@ -23,7 +22,7 @@ class ImageFitness
         {
             Color4f color;
             ubyte x, y;
-            ushort width, heigth;
+            ushort width, height;
         }
 
         Rect toShape(ref BitArray genom)
@@ -33,13 +32,13 @@ class ImageFitness
                                         "ubyte", 6, "x",
                                         "ubyte", 6, "y",
                                         "ubyte", 6, "width",
-																				"ubyte", 6, "heigth")());
+                                        "ubyte", 6, "height")());
                 Rect shape;
                 shape.color = color4(color);
                 shape.x = x;
                 shape.y = y;
-								shape.width = width;
-								shape.heigth = heigth;
+                shape.width = width;
+                shape.height = height;
                 return shape;
         }
     }
@@ -54,9 +53,9 @@ class ImageFitness
         foreach(ref rect; rects)
         {
             auto color = rect.color;
-            foreach(x; (rect.x) .. (rect.x + rect.width))
+            foreach(x; rect.x .. (rect.x + rect.width))
             {
-                foreach(y; (rect.y) .. (rect.y + rect.heigth))
+                foreach(y; rect.y .. (rect.y + rect.height))
                 {
                     if( x >= 0 &&
                         x < image.width &&
@@ -91,20 +90,15 @@ class ImageFitness
     }
 }
 
-void draw(string input,float mutation = 0.99)
+void draw(string input,float mutation)
 {
-	ImageFitness fitness = new ImageFitness(input);
-	const uint NUMBER_OF_RECTANGLES = 20;
-	geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, mutation);
+    ImageFitness fitness = new ImageFitness(input);
+    const uint NUMBER_OF_RECTANGLES = 20;
+    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, mutation);
 }
 
 void main(string[] argv)
 {
-	try
-	{
-			auto data = getOptions(argv);
-			draw(data.input, data.probability);
-	}catch (NoInputParams e){
-		writeln("getOptions returned exception: ",e);
-	}
+    auto data = getOptions(argv);
+    draw(data.input, data.mutation);
 }

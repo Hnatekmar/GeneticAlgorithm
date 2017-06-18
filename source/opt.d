@@ -1,6 +1,7 @@
 import std.getopt;
 import std.variant;
 import std.file;
+import std.stdio;
 
 
 struct Options {
@@ -27,31 +28,26 @@ class NoInputParams : Exception
 }
 
 Options getOptions(string[] args)
-in
 {
-    assert(args.length < 5, "Opps too many argmunt inputed");
-}
-body
-{
-		
     string input;
     ulong countEpoch;
-    float mutationNumber;
+    float mutationNumber = 0.99;
     float probability = 1.0;
     auto helpInformation = getopt(
-        args,
-        "epoch|e","Counting epoch, number(int).", &countEpoch,
-        "mutation|m","Mutation, how large mutation should be(int).", &mutationNumber,
-        "probability|p","Number(float) representing probability.", &probability,
-        "input|i","Input file with data.", &input
-    );
+            args,
+            "epoch|e","Counting epoch, number (ulong).", &countEpoch,
+            "mutation|m","Mutation, how large mutation should be(int).", &mutationNumber,
+            "probability|p","Number (float) representing probability.", &probability,
+            "input|i","Input file with data.", &input
+            );
 
-		if((getcwd() ~ "/" ~ input).exists == false)
-		{
-			throw new NoInputParams("Inputed image file " ~ input ~ " not found");
-		}
+    if(input.exists == false && input != "")
+    {
+        //throw new NoInputParams("Inputed image file " ~ input ~ " not found");
+        writeln("File you tried to input " ~ input ~ " does not exists!");
+    }
 
-		auto data = Options(input, mutationNumber, countEpoch, probability);
+    auto opt = Options(input, mutationNumber, countEpoch, probability);
 
     if (helpInformation.helpWanted)
     {
@@ -60,5 +56,5 @@ body
             helpInformation.options
         );
     }
-	return data;
+	return opt;
 }
