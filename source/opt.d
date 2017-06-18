@@ -29,43 +29,49 @@ class NoInputParams : Exception
 Options getOptions(string[] args)
 {
     string input;
-    ulong countEpoch;
+    ulong countEpoch = 10_000;
     float mutationNumber = 0.99f;
-    float probability;
+    float probability = 0.99;
     bool forever = false;
-    auto helpInformation = getopt(
-            args,
-            "epoch|e","Counting epoch, number (ulong).", &countEpoch,
-            "probability|p","Number (float) representing probability.", &probability,
-            "mutation|m","Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
-            "forever|f", "Run program forever", &forever,
-            std.getopt.config.required,
-            "input|i","This is the image you MUST input", &input,
-            );
-
-    if((!input.exists && input != "") || !(mutationNumber >= 0.0f && mutationNumber <= 1.0f))
+    try
     {
-        helpInformation.helpWanted = true;
-        if (!input.exists)
+        auto helpInformation = getopt(
+                args,
+                "epoch|e","Counting epoch, number (ulong).", &countEpoch,
+                "probability|p","Number (float) representing probability.", &probability,
+                "mutation|m","Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
+                "forever|f", "Run program forever", &forever,
+                config.required,
+                "input|i","This is the image you MUST input", &input,
+                );
+
+        if (!input.exists && input != "")
         {
+            helpInformation.helpWanted = true;
             stderr.writeln("ERROR: File you tried to input " ~ input ~ " does not exists!");
         }
-        if (!(mutationNumber >= 0.0f && mutationNumber <= 1.0f))
+
+        if(!(mutationNumber >= 0.0f && mutationNumber <= 1.0f))
         {
+            helpInformation.helpWanted = true;
             stderr.writeln("ERROR: Mutation value is not correct");
         }
-    }
 
-    if (helpInformation.helpWanted)
-    {
-    defaultGetoptPrinter(
-            "\nHELP INFO: Generic algorithm coloring pictures with geometric objects.\n",
-            helpInformation.options
-        );
-    }
+        if (helpInformation.helpWanted)
+        {
+            defaultGetoptPrinter(
+                    "\nHELP INFO: Generic algorithm coloring pictures with geometric objects.\n",
+                    helpInformation.options
+                    );
+        }
 
-    if (helpInformation.helpWanted)
+        if (helpInformation.helpWanted)
+        {
+            exit(-1);
+        }
+    }catch(GetOptException e)
     {
+        stderr.writeln(e.msg);
         exit(-1);
     }
 

@@ -27,19 +27,19 @@ class ImageFitness
 
         Rect toShape(ref BitArray genom)
         {
-                mixin(decoder.decoder!("genom",
-                                        "int",  32, "color",
-                                        "ubyte", 6, "x",
-                                        "ubyte", 6, "y",
-                                        "ubyte", 6, "width",
-                                        "ubyte", 6, "height")());
-                Rect shape;
-                shape.color = color4(color);
-                shape.x = x;
-                shape.y = y;
-                shape.width = width;
-                shape.height = height;
-                return shape;
+            mixin(decoder.decoder!("genom",
+                        "int",  32, "color",
+                        "ubyte", 6, "x",
+                        "ubyte", 6, "y",
+                        "ubyte", 6, "width",
+                        "ubyte", 6, "height")());
+            Rect shape;
+            shape.color = color4(color);
+            shape.x = x;
+            shape.y = y;
+            shape.width = width;
+            shape.height = height;
+            return shape;
         }
     }
 
