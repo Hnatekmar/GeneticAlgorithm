@@ -73,7 +73,9 @@ class ImageFitness
     {
         SuperImage source = image(destination.width, destination.height);
         Circle[] shapes;
-        foreach(index; 0 .. (genom.length / populationSize))
+        size_t numberOfShapesInPopulation = genom.length / populationSize;
+        shapes.reserve(numberOfShapesInPopulation);
+        foreach(index; 0 .. numberOfShapesInPopulation)
         {
             auto circle = subArray(genom, index * populationSize, index * populationSize + populationSize);
             auto shape = toShape(circle);
