@@ -2,22 +2,22 @@ import std.getopt;
 import std.variant;
 import std.file;
 import std.stdio;
-
+import core.stdc.stdlib;
 
 struct Options {
 
-		ulong countEpoch;
-		float mutation;
-		string input;
-		float probability;
+    ulong countEpoch;
+    float mutation;
+    string input;
+    float probability;
 
-		this(string inp, float mutate, ulong  count, float prob)
-		{
-			this.input = inp;
-			this.mutation = mutate;
-			this.countEpoch = count;
-			this.probability = prob;
-		}
+    this(string inp, float mutate, ulong  count, float prob)
+    {
+        this.input = inp;
+        this.mutation = mutate;
+        this.countEpoch = count;
+        this.probability = prob;
+    }
 }
 
 class NoInputParams : Exception
@@ -31,30 +31,41 @@ Options getOptions(string[] args)
 {
     string input;
     ulong countEpoch;
-    float mutationNumber = 0.99;
-    float probability = 1.0;
+    float mutationNumber = 0.99f;
+    float probability;
     auto helpInformation = getopt(
             args,
+            "input|i","This is the image you MUST input", &input,
             "epoch|e","Counting epoch, number (ulong).", &countEpoch,
-            "mutation|m","Mutation, how large mutation should be(int).", &mutationNumber,
             "probability|p","Number (float) representing probability.", &probability,
-            "input|i","Input file with data.", &input
+            "mutation|m","Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber
             );
 
-    if(input.exists == false && input != "")
+    if((!input.exists && input != "") || (mutationNumber >= 0.0f && mutationNumber <= 1.0f) == false)
     {
-        //throw new NoInputParams("Inputed image file " ~ input ~ " not found");
-        writeln("File you tried to input " ~ input ~ " does not exists!");
+        helpInformation.helpWanted = true;
+        if (!input.exists)
+        {
+            stderr.writeln("ERROR: File you tried to input " ~ input ~ " does not exists!");
+        }
+        if (!(mutationNumber >= 0.0f && mutationNumber <= 1.0f))
+        {
+            stderr.writeln("ERROR: Mutation value is not correct");
+        }
     }
-
-    auto opt = Options(input, mutationNumber, countEpoch, probability);
 
     if (helpInformation.helpWanted)
     {
     defaultGetoptPrinter(
-            "Generic algorithm for coloring pictures with geometric objects.\n",
+            "\nHELP INFO: Generic algorithm coloring pictures with geometric objects.\n",
             helpInformation.options
         );
     }
+
+    if (helpInformation.helpWanted)
+    {
+        exit(-1);
+    }
+    auto opt = Options(input, mutationNumber, countEpoch, probability);
 	return opt;
 }
