@@ -12,32 +12,34 @@ import dlib.image.color: color4;
 
 class ImageFitness
 {
-    immutable populationSize = 32 + 3 * 6;
+    immutable populationSize = 32 + 4 * 6;
     private
     {
         SuperImage destination;
         double bestFitness = double.max;
 
-        struct Circle
+        struct Rect
         {
             Color4f color;
             ubyte x, y;
-            ushort radius;
+            ushort width, height;
         }
 
-        Circle toShape(ref BitArray genom)
+        Rect toShape(ref BitArray genom)
         {
-                mixin(decoder.decoder!("genom",
-                                        "int",  32, "color",
-                                        "ubyte", 6, "x",
-                                        "ubyte", 6, "y",
-                                        "ubyte", 6, "radius")());
-                Circle shape;
-                shape.color = color4(color);
-                shape.x = x;
-                shape.y = y;
-                shape.radius = radius;
-                return shape;
+            mixin(decoder.decoder!("genom",
+                        "int",  32, "color",
+                        "ubyte", 6, "x",
+                        "ubyte", 6, "y",
+                        "ubyte", 6, "width",
+                        "ubyte", 6, "height")());
+            Rect shape;
+            shape.color = color4(color);
+            shape.x = x;
+            shape.y = y;
+            shape.width = width;
+            shape.height = height;
+            return shape;
         }
     }
 
@@ -46,17 +48,16 @@ class ImageFitness
         destination = loadImage(path);
     }
 
-    void rasterize(ref SuperImage image, in Circle[] circles)
+    void rasterize(ref SuperImage image, in Rect[] rects)
     {
-        foreach(ref circle; circles)
+        foreach(ref rect; rects)
         {
-            auto color = circle.color;
-            foreach(x; (circle.x - circle.radius / 2) .. (circle.x + circle.radius / 2))
+            auto color = rect.color;
+            foreach(x; rect.x .. (rect.x + rect.width))
             {
-                foreach(y; (circle.y - circle.radius / 2) .. (circle.y + circle.radius / 2))
+                foreach(y; rect.y .. (rect.y + rect.height))
                 {
-                    if(distance(x, y, circle.x, circle.y) <= (circle.radius / 2) &&
-                        x >= 0 &&
+                    if( x >= 0 &&
                         x < image.width &&
                         y >= 0 &&
                         y < image.height)
@@ -71,7 +72,7 @@ class ImageFitness
     double opCall(ref BitArray genom)
     {
         SuperImage source = image(destination.width, destination.height);
-        Circle[] shapes;
+        Rect[] shapes;
         foreach(index; 0 .. (genom.length / populationSize))
         {
             auto circle = subArray(genom, index * populationSize, index * populationSize + populationSize);
@@ -89,19 +90,15 @@ class ImageFitness
     }
 }
 
-
-void draw()
+void draw(string input,float mutation)
 {
-    ImageFitness fitness = new ImageFitness("mona4.jpg");
-    const uint NUMBER_OF_CIRCLES = 10;
-    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
+    ImageFitness fitness = new ImageFitness(input);
+    const uint NUMBER_OF_RECTANGLES = 20;
+    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, mutation);
 }
 
 void main(string[] argv)
 {
-    if (argv.length > 1)
-    {
-        getoptions(argv);
-    }
-    draw();
+    auto data = getOptions(argv);
+    draw(data.input, data.mutation);
 }
