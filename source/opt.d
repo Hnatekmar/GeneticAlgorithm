@@ -21,13 +21,6 @@ struct Options {
     }
 }
 
-class NoInputParams : Exception
-{
-    this(string msg, string file = __FILE__, size_t line = __LINE__) {
-        super(msg, file, line);
-    }
-}
-
 Options getOptions(string[] args)
 {
     string input;
@@ -44,7 +37,7 @@ Options getOptions(string[] args)
                 "mutation|m", "Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
                 "forever|f", "Run program forever", &forever,
                 config.required,
-                "input|i", "This is the image you MUST input", &input,
+                "input|i", "This is the image you MUST input", &input
                 );
 
         if (!input.exists && input != "")
