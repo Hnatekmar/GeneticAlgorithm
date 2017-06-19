@@ -1,31 +1,79 @@
 import std.getopt;
+import std.file;
+import std.stdio;
+import core.stdc.stdlib;
 
-void getoptions(string[] args)
-in
-{
-    assert(args.length > 1, "Inputed empty paramters");
-    assert(args.length < 5, "Opps too many argmunt inputed");
-}
-body
-{
-    string data;
-    int count_epoch;
-    int mutation_number;
-    float probability = 0.0;
-    auto helpInformation = getopt(
-        args,
-        "epoch|e","Counting epoch, number(int).", &count_epoch,
-        "mutation|m","Mutation, how large mutation should be(int).", &mutation_number,
-        "probability|p","Number(float) representing probability.", &probability,
-        "input|i","Input file with data.", &data
-    );
-    import std.stdio;
-    data.writeln;
-    if (helpInformation.helpWanted)
+struct Options {
+
+    ulong countEpoch;
+    float mutation;
+    string input;
+    float probability;
+
+    this(string inp, float mutate, ulong  count, float prob)
     {
-    defaultGetoptPrinter(
-            "Generic algorithm for coloring pictures with geometric objects.\n",
-            helpInformation.options
-        );
+        this.input = inp;
+        this.mutation = mutate;
+        this.countEpoch = count;
+        this.probability = prob;
     }
+}
+
+class NoInputParams : Exception
+{
+    this(string msg, string file = __FILE__, size_t line = __LINE__) {
+        super(msg, file, line);
+    }
+}
+
+Options getOptions(string[] args)
+{
+    string input;
+    ulong countEpoch = 10_000;
+    float mutationNumber = 0.99f;
+    float probability = 0.01;
+    bool forever = false;
+    try
+    {
+        auto helpInformation = getopt(
+                args,
+                "epoch|e","Counting epoch, number (ulong).", &countEpoch,
+                "probability|p","Number (float) representing probability.", &probability,
+                "mutation|m","Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
+                "forever|f", "Run program forever", &forever,
+                config.required,
+                "input|i","This is the image you MUST input", &input,
+                );
+
+        if (!input.exists && input != "")
+        {
+            helpInformation.helpWanted = true;
+            stderr.writeln("ERROR: File you tried to input " ~ input ~ " does not exists!");
+        }
+
+        if(!(mutationNumber >= 0.0f && mutationNumber <= 1.0f))
+        {
+            helpInformation.helpWanted = true;
+            stderr.writeln("ERROR: Mutation value is not correct");
+        }
+
+        if (helpInformation.helpWanted)
+        {
+            defaultGetoptPrinter(
+                    "\nHELP INFO: Generic algorithm coloring pictures with geometric objects.\n",
+                    helpInformation.options
+                    );
+        }
+
+        if (helpInformation.helpWanted)
+        {
+            exit(-1);
+        }
+    }catch(GetOptException e)
+    {
+        stderr.writeln(e.msg);
+        exit(-1);
+    }
+
+    return Options(input, mutationNumber, countEpoch, probability);
 }

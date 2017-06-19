@@ -30,7 +30,7 @@ class Individual(alias fitnessFn)
     {
         foreach(i; 0..size)
         {
-            representation ~= uniform(0, 2) == 0;
+            representation ~= uniform(0, 2, gen) == 0;
         }
         calculatedFitness = fitnessFn(representation);
     }
@@ -40,7 +40,7 @@ class Individual(alias fitnessFn)
         auto newRepresentation = representation.dup();
         foreach(i; 0..representation.length)
         {
-            if(mutationRate < uniform01(gen))
+            if(mutationRate > uniform01(gen))
             {
                 newRepresentation[i] = !newRepresentation[i];
             }
