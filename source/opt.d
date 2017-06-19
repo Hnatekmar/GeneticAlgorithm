@@ -9,13 +9,15 @@ struct Options {
     float mutation;
     string input;
     float probability;
+    bool forever;
 
-    this(string inp, float mutate, ulong  count, float prob)
+    this(string inp, float mutate, ulong  count, float prob, bool forever)
     {
         this.input = inp;
         this.mutation = mutate;
         this.countEpoch = count;
         this.probability = prob;
+        this.forever = forever;
     }
 }
 
@@ -37,12 +39,12 @@ Options getOptions(string[] args)
     {
         auto helpInformation = getopt(
                 args,
-                "epoch|e","Counting epoch, number (ulong).", &countEpoch,
-                "probability|p","Number (float) representing probability.", &probability,
-                "mutation|m","Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
+                "epoch|e", "Counting epoch, number (ulong).", &countEpoch,
+                "probability|p", "Number (float) representing probability.", &probability,
+                "mutation|m", "Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
                 "forever|f", "Run program forever", &forever,
                 config.required,
-                "input|i","This is the image you MUST input", &input,
+                "input|i", "This is the image you MUST input", &input,
                 );
 
         if (!input.exists && input != "")
@@ -69,11 +71,11 @@ Options getOptions(string[] args)
         {
             exit(-1);
         }
-    }catch(GetOptException e)
+    }
+    catch(GetOptException e)
     {
         stderr.writeln(e.msg);
         exit(-1);
     }
-
-    return Options(input, mutationNumber, countEpoch, probability);
+    return Options(input, mutationNumber, countEpoch, probability, forever);
 }

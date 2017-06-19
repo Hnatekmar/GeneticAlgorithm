@@ -49,8 +49,8 @@ Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] popula
     return newPopulation;
 }
 
-Individual!fitness geneticAlgorithm(alias fitness)(size_t genomSize, double requiredFitness,
-                                                                size_t populationSize, float mutationRate)
+Individual!fitness geneticAlgorithm(alias fitness)(size_t genomSize, double requiredFitness, size_t populationSize,
+                                                   float mutationRate, size_t generationMax, bool infinite = false)
 {
     import std.stdio: writeln;
     Individual!fitness[] current;
@@ -71,6 +71,7 @@ Individual!fitness geneticAlgorithm(alias fitness)(size_t genomSize, double requ
             bestFitness = fittest.fitness;
         }
         generationNumber += 1;
+        if(generationNumber >= generationMax && !infinite) break;
     }
     return current.getFittest();
 }

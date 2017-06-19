@@ -90,15 +90,16 @@ class ImageFitness
     }
 }
 
-void draw(string input, float mutation)
+void draw(in Options options)
 {
-    ImageFitness fitness = new ImageFitness(input);
+    ImageFitness fitness = new ImageFitness(options.input);
     const uint numberOfShapes = 20;
-    geneticAlgorithm!(fitness)(fitness.populationSize * numberOfShapes, 0.0, 50, mutation);
+    geneticAlgorithm!(fitness)(fitness.populationSize * numberOfShapes, 0.0, 50, options.mutation, options.countEpoch,
+    options.forever);
 }
 
 void main(string[] argv)
 {
     auto data = getOptions(argv);
-    draw(data.input, data.mutation);
+    draw(data);
 }
