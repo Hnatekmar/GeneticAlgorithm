@@ -4,7 +4,6 @@ import std.bitmanip : BitArray;
 import std.traits;
 import std.math;
 
-
 /**
  * Calculates meanSquared error from two arrays
  * Example:
@@ -15,7 +14,7 @@ import std.math;
  * ---
  */
 pure double meanSquaredError(T)(in T[] a, in T[] b)
-    if(isIntegral!T)
+if(isIntegral!T)
 in
 {
     assert(a.length == b.length, "Pole musí být stejné delky");
@@ -32,16 +31,6 @@ body
         result += (a[index] - b[index]) ^^ 2;
     }
     return result / a.length;
-}
-
-/**
- * Computes distance between two points in 2D euclidean space
- */
-@nogc
-pragma(inline, true)
-pure double distance(int x0, int y0, int x1, int y1)
-{
-    return sqrt(cast(double)((x0 - x1) ^^ 2 + (y0 - y1) ^^ 2));
 }
 
 /**

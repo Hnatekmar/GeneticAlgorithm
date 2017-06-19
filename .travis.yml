@@ -1,5 +1,5 @@
 language: d
-d: ldc
+d: dmd
 os:
   - linux
   - osx
@@ -11,6 +11,7 @@ before_install:
 
     - 'if [ $TRAVIS_OS_NAME = "osx" ]; then
           npm install -g eclint;
+          brew install cairo;
        fi'
 
     - 'if [ $TRAVIS_OS_NAME = linux ]; then
@@ -33,4 +34,8 @@ install:
     - 'if [ $TRAVIS_OS_NAME = "osx" ]; then
           eclint check **/*.d;
        fi'
+
+script:
+    - dub test --compiler=$DC --config=genetic
+    - dub test --compiler=$DC --config=benchmark
 

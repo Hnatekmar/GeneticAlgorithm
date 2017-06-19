@@ -6,8 +6,32 @@
 	],
     "lflags" : ["-LDSFMLC/lib"],
 	"dependencies": {
-        "dsfml:graphics": "~>2.1"
+        "dsfml:graphics": "~>2.1",
+		"dlib": "~>0.11.1"
 	},
+	"configurations": [
+		{
+			"name": "genetic",
+			"targetType": "executable",
+			"excludedSourceFiles": ["source/benchmark.d"],
+			"targetName": "genetic",
+			"mainSourceFile": "source/app.d"
+		},
+		{
+			"name": "benchmark",
+			"targetType": "executable",
+			"excludedSourceFiles": ["source/app.d"],
+			"targetName": "benchmark",
+			"dependencies": {
+				"ggplotd": ">=0.4.5"
+			},
+			"subConfigurations": {
+				"ggplotd": "ggplotd-gtk"
+			},
+			"buildRequirements": ["disallowOptimization"],
+			"mainSourceFile": "source/benchmark.d"
+		}
+	],
 	"description": "Genetic algorithm library with application that tests it (school project)",
 	"license": "MIT"
 }

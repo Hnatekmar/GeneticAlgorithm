@@ -1,9 +1,8 @@
 module decoder;
 
 import std.bitmanip;
-import std.range;
 import std.meta;
-import std.conv;
+import std.format: format;
 
 // Manipulating bits
 ubyte getBit(ubyte x, int n) {
@@ -148,6 +147,7 @@ unittest {
  */
 mixin template decoder(string name, string startName, size_t fieldOffset, T...)
 {
+    import std.conv: to;
     static if(T.length != 0)
     {
         import std.format : format;

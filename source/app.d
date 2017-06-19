@@ -2,211 +2,97 @@ import opt;
 import genetic;
 import std.stdio;
 import std.bitmanip;
-import dsfml.window;
-import dsfml.graphics;
 import std.random;
 import std.exception;
 import std.math;
 import util;
 import decoder;
-import simdutil;
-import core.simd;
 
-struct GeneticImage
+import dlib.image;
+import dlib.image.color: color4;
+
+import dlib.image : Image, PixelFormat;
+
+class AlignedImage(PixelFormat fmt): Image!fmt
 {
-    immutable uint w;
-    immutable uint h;
-    ubyte16[] pixels;
-
-    this(uint width, uint height)
-    in
+    this(uint w, uint h)
     {
-        assert(w % 4 == 0, "Šířka musí být dělitelná 4!");
-        assert(h % 4 == 0, "Výška musí být dělitelná 4!");
-    }
-    body
-    {
-        w = width;
-        h = height;
-        pixels = new ubyte16[w * h / 4];
-        foreach(pixelPack; pixels) {
-            pixelPack = [0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255];
-        }
+        super(w, h);
     }
 
-    this(Image sfmlImage)
-    in
+    override protected void allocateData()
     {
-        assert(sfmlImage !is null, "Obrázek nesmí být null!");
-    }
-    body
-    {
-        pixels.unpacked[] = sfmlImage.getPixelArray()[];
-    }
+        import core.simd : ubyte16;
 
-    Image toSFMLImage()
-    {
-        Image result = new Image();
-        auto unpackedPixels = pixels.unpacked;
-        result.create(w, h, unpackedPixels);
-        return result;
+        assert(_width % 4 == 0, "Width of image must be a multiple of 4");
+        _data = cast(ubyte[]) new ubyte16[_width * _height * _pixelSize / 16];
     }
 }
 
-class ImageFitness
+class ImageFitness(Rasterizer)
 {
     private
     {
-        Image destination;
+        ulong _shapeCount;
+        SuperImage target;
         double bestFitness = double.max;
-
-        struct CircleColor
-        {
-            ubyte r, g, b, a;
-        }
-
-        struct Circle
-        {
-            CircleColor color;
-            ubyte x, y;
-            ushort radius;
-        }
-
-        Circle toShape(ref BitArray genom, size_t offset)
-        {
-            ubyte extendColor(ubyte x) {
-                import std.conv : to;
-                return cast(ubyte) ((x << 5) | (x << 2) | (x >> 1));
-            }
-            mixin decoder!("genom", "offset", 0,
-                        "ubyte", 3, "r",
-                        "ubyte", 3, "g",
-                        "ubyte", 3, "b",
-                        "ubyte", 6, "x",
-                        "ubyte", 6, "y",
-                        "ubyte", 4, "radius");
-            Circle shape;
-            shape.color = CircleColor(extendColor(r), extendColor(g), extendColor(b), 255);
-            shape.x = x;
-            shape.y = y;
-            shape.radius = radius;
-            return shape;
-        }
     }
 
-    static immutable populationSize = 3 * 3 + 2 * 6 + 4;
-
-    this(string path)
+    this(string path, ulong shapeCount)
     {
-        destination = new Image();
-        if(!destination.loadFromFile(path))
-        {
-            throw new ErrnoException("Vstupní obrázek se nepodařilo nahrát!");
-        }
+        target = loadImage(path);
+        _shapeCount = shapeCount;
     }
 
-    void rasterizeCircle(ref GeneticImage image, in Circle circle)
+    size_t genomeSize()
     {
-        import std.algorithm : min;
-
-        auto left = circle.x < circle.radius ? 0 : circle.x - circle.radius;
-        auto right = min(circle.x + circle.radius + 1, image.w);
-        auto top = circle.y < circle.radius ? 0 : circle.y - circle.radius;
-        auto bottom = min(circle.y + circle.radius + 1, image.h);
-
-        // Make sure the x positions are nicely aligned
-        left = left & ~3;
-        right = (right + 3) & ~3;
-
-        ubyte16 color;
-        color.unpacked[] = [circle.color.r, circle.color.g, circle.color.b, 255, circle.color.r, circle.color.g, circle.color.b, 255, circle.color.r, circle.color.g, circle.color.b, 255, circle.color.r, circle.color.g, circle.color.b, 255];
-
-        uint4 radSquared = circle.radius ^^ 2;
-        ubyte16 zero = 0;
-
-        foreach(y; top..bottom)
-        {
-            // A lot of the following will go negative even though it's unsigned,
-            // but ultimately it doesn't matter, because we'll be squaring it anyway.
-            uint4 xPixel = [0, 1, 2, 3];
-            xPixel += left - circle.x;
-            uint4 ySquared = (y - circle.y) ^^ 2;
-
-            ubyte16 alphaMask = [0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255];
-
-            auto yIdx = y * image.w / 4;
-
-            for (auto x = left; x < right; x += 4, xPixel += 4)
-            {
-                auto idx = yIdx + x / 4;
-                ubyte16 pixels = image.pixels[idx];
-
-                // (x - circle.x) ^^ 2
-                uint4 xSquared = __simd(XMM.PMULLD, xPixel, xPixel);
-
-                // all ones for kept pixels and vice versa
-                ubyte16 keepMask = __simd(XMM.PCMPGTD, xSquared + ySquared, radSquared);
-
-                // all ones for pexes written directly, zeros for pexes mixed
-                ubyte16 directMask = __simd(XMM.PCMPEQB, pixels, zero);
-
-                // color of the circle mixed with the previous color
-                ubyte16 mixedColor = __simd(XMM.PAVGB, color, pixels);
-
-                // color as if the circle were present
-                ubyte16 circleColor = (directMask & color) | (~directMask & mixedColor);
-
-                // final color
-                ubyte16 finalColor = (keepMask & pixels) | (~keepMask & circleColor);
-
-                image.pixels[idx] = finalColor;
-            }
-        }
+        return _shapeCount * Rasterizer.shapeBits;
     }
 
-    double opCall(ref BitArray genom)
+    double opCall(ref BitArray genome)
     {
-        immutable auto size = destination.getSize();
-        GeneticImage source = GeneticImage(size.x, size.y);
-        Circle[] shapes;
-        foreach(index; 0 .. (genom.length / populationSize))
+        import core.simd : ubyte16;
+        import simdutil : unpacked;
+
+        auto source = new AlignedImage!(PixelFormat.RGBA8)(target.width, target.height);
+        auto pixels = cast(ubyte16[]) source.data;
+        foreach (pixelPack; pixels)
         {
-            auto shape = toShape(genom, index * populationSize);
-            rasterizeCircle(source, shape);
+            pixelPack = [0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255];
         }
-        auto fitness = meanSquaredError(source.pixels.unpacked, destination.getPixelArray());
-        if(fitness < bestFitness)
+
+        size_t numberOfShapesInPopulation = genome.length / Rasterizer.shapeBits;
+        foreach (index; 0 .. numberOfShapesInPopulation)
         {
-            source.toSFMLImage.saveToFile("last.png");
+            Rasterizer.rasterizeShape(pixels, target.width, target.height, genome, index * Rasterizer.shapeBits);
+        }
+
+        auto fitness = meanSquaredError(source.data, target.data);
+        if (fitness < bestFitness)
+        {
+            source.saveImage("last.png");
             bestFitness = fitness;
         }
+
         return fitness;
     }
 }
 
-
-void draw()
+void draw(in Options options)
 {
-    auto shapeConvertor = (BitArray genom) =>
-    {
-    };
-    ImageFitness fitness = new ImageFitness("mona.jpeg");
-    const uint NUMBER_OF_CIRCLES = 500;
-    geneticAlgorithm!(fitness, shapeConvertor)(ImageFitness.populationSize * NUMBER_OF_CIRCLES, 0.0, 50, 0.99);
+    import rasterizer : RectangleRasterizer;
+    auto fitness = new ImageFitness!RectangleRasterizer(options.input, options.shapeCount);
+    geneticAlgorithm!(fitness)(
+            fitness.genomeSize,
+            0.0,
+            50,
+            options.mutation,
+            options.countEpoch,
+            options.forever);
 }
 
 void main(string[] argv)
 {
-    if (argv.length > 1)
-    {
-        getoptions(argv);
-    }
-    try
-    {
-        draw();
-    }
-    catch(ErrnoException err)
-    {
-        err.msg.writeln;
-    }
+    auto data = getOptions(argv);
+    draw(data);
 }
