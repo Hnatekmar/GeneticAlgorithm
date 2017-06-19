@@ -52,7 +52,6 @@ class ImageFitness
     {
         foreach(ref rect; rects)
         {
-            auto color = rect.color;
             foreach(x; rect.x .. (rect.x + rect.width))
             {
                 foreach(y; rect.y .. (rect.y + rect.height))
@@ -62,7 +61,7 @@ class ImageFitness
                         y >= 0 &&
                         y < image.height)
                     {
-                        image[x, y] = alphaOver(image[x, y], circle.color);
+                        image[x, y] = alphaOver(image[x, y], rect.color);
                     }
                 }
             }
@@ -91,11 +90,11 @@ class ImageFitness
     }
 }
 
-void draw(string input,float mutation)
+void draw(string input, float mutation)
 {
     ImageFitness fitness = new ImageFitness(input);
-    const uint NUMBER_OF_SHAPES = 20;
-    geneticAlgorithm!(fitness)(fitness.populationSize * NUMBER_OF_RECTANGLES, 0.0, 50, mutation);
+    const uint numberOfShapes = 20;
+    geneticAlgorithm!(fitness)(fitness.populationSize * numberOfShapes, 0.0, 50, mutation);
 }
 
 void main(string[] argv)
