@@ -14,46 +14,46 @@ in
 }
 body
 {
-	enum sizetBits = size_t.sizeof * 8;
+    enum sizetBits = size_t.sizeof * 8;
     const bitSize = toBit - fromBit;
     const from = fromBit / sizetBits;
     const to = (toBit + sizetBits - 1) / sizetBits;
     auto bits = (cast(size_t[]) array)[from .. to].dup;
-	const shift = fromBit - from * sizetBits;
-	assert(shift < 64);
-	shiftArr(bits, shift, toBit - from * sizetBits);
-	return BitArray(bits, bitSize);
+    const shift = fromBit - from * sizetBits;
+    assert(shift < 64);
+    shiftArr(bits, shift, toBit - from * sizetBits);
+    return BitArray(bits, bitSize);
 }
 
 void shiftArr(size_t[] arr, size_t n, size_t totalBits)
 in
 {
-	assert(n < 64);
+    assert(n < 64);
 }
 body
 {
-	if (n == 0)
-	{
-		return;
-	}
+    if (n == 0)
+    {
+        return;
+    }
 
-	enum sizetBits = size_t.sizeof * 8;
+    enum sizetBits = size_t.sizeof * 8;
 
-	foreach (i; 0..arr.length - 1)
-	{
-		arr[i] = (arr[i] >> n) | ((arr[i + 1] & ((size_t(1) << n) - 1)) << (sizetBits - n));
-	}
+    foreach (i; 0..arr.length - 1)
+    {
+        arr[i] = (arr[i] >> n) | ((arr[i + 1] & ((size_t(1) << n) - 1)) << (sizetBits - n));
+    }
 
-	const remainingBits = totalBits % sizetBits;
-	const mask = remainingBits ? (size_t(1) << remainingBits) - 1 : ~0;
-	arr[$ - 1] = (arr[$ - 1] & mask) >> n;
+    const remainingBits = totalBits % sizetBits;
+    const mask = remainingBits ? (size_t(1) << remainingBits) - 1 : ~0;
+    arr[$ - 1] = (arr[$ - 1] & mask) >> n;
 }
 
 unittest
 {
-	size_t[] arr = [1024, 1024, 1024, 1024];
-	shiftArr(arr, 1, 4 * size_t.sizeof * 8);
-	assert(arr == [512, 512, 512, 512]);
+    size_t[] arr = [1024, 1024, 1024, 1024];
+    shiftArr(arr, 1, 4 * size_t.sizeof * 8);
+    assert(arr == [512, 512, 512, 512]);
 }
 
 /**
