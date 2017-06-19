@@ -10,14 +10,16 @@ struct Options {
     string input;
     float probability;
     bool forever;
+    ulong shapeCount;
 
-    this(string inp, float mutate, ulong  count, float prob, bool forever)
+    this(string inp, float mutate, ulong  count, float prob, bool forever, ulong shapeCount)
     {
         this.input = inp;
         this.mutation = mutate;
         this.countEpoch = count;
         this.probability = prob;
         this.forever = forever;
+        this.shapeCount = shapeCount;
     }
 }
 
@@ -27,6 +29,7 @@ Options getOptions(string[] args)
     ulong countEpoch = 10_000;
     float mutationNumber = 0.99f;
     float probability = 0.01;
+    ulong shapeCount = 50;
     bool forever = false;
     try
     {
@@ -36,6 +39,7 @@ Options getOptions(string[] args)
                 "probability|p", "Number (float) representing probability.", &probability,
                 "mutation|m", "Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
                 "forever|f", "Run program forever", &forever,
+                "shapeCount|s", "Number of shapes used for approximation (s > 0)", &shapeCount,
                 config.required,
                 "input|i", "This is the image you MUST input", &input
                 );
@@ -50,6 +54,12 @@ Options getOptions(string[] args)
         {
             helpInformation.helpWanted = true;
             stderr.writeln("ERROR: Mutation value is not correct");
+        }
+
+        if (shapeCount == 0)
+        {
+            helpInformation.helpWanted = true;
+            stderr.writeln("ERROR: number of shapes has to be at least 1");
         }
 
         if (helpInformation.helpWanted)
@@ -70,5 +80,5 @@ Options getOptions(string[] args)
         stderr.writeln(e.msg);
         exit(-1);
     }
-    return Options(input, mutationNumber, countEpoch, probability, forever);
+    return Options(input, mutationNumber, countEpoch, probability, forever, shapeCount);
 }

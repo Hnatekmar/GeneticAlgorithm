@@ -93,8 +93,8 @@ class ImageFitness
 void draw(in Options options)
 {
     ImageFitness fitness = new ImageFitness(options.input);
-    const uint numberOfShapes = 20;
-    geneticAlgorithm!(fitness)(fitness.populationSize * numberOfShapes, 0.0, 50, options.mutation, options.countEpoch,
+    geneticAlgorithm!(fitness)(fitness.populationSize * options.shapeCount, 0.0, 50, options.mutation, options
+    .countEpoch,
     options.forever);
 }
 
