@@ -11,9 +11,9 @@ import decoder;
 import dlib.image;
 import dlib.image.color: color4;
 
-import dlib.image : Image, PixelFormat;
+import dlib.image : ImageRGBA8, PixelFormat;
 
-class AlignedImage(PixelFormat fmt): Image!fmt
+class AlignedImage: ImageRGBA8
 {
     this(uint w, uint h)
     {
@@ -40,7 +40,9 @@ class ImageFitness(Rasterizer)
 
     this(string path, ulong shapeCount)
     {
-        target = loadImage(path);
+        import dlib.image : convert;
+
+        target = loadImage(path).convert!AlignedImage;
         _shapeCount = shapeCount;
     }
 
@@ -54,9 +56,9 @@ class ImageFitness(Rasterizer)
         import core.simd : ubyte16;
         import simdutil : unpacked;
 
-        auto source = new AlignedImage!(PixelFormat.RGBA8)(target.width, target.height);
+        auto source = new AlignedImage(target.width, target.height);
         auto pixels = cast(ubyte16[]) source.data;
-        foreach (pixelPack; pixels)
+        foreach (ref pixelPack; pixels)
         {
             pixelPack = [0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255];
         }
