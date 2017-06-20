@@ -12,6 +12,7 @@ import dlib.image.color: color4;
 import dsfml.window;
 import dsfml.graphics;
 import sfmlImage = dsfml.graphics.image;
+import std.concurrency;
 
 class ImageFitness
 {
@@ -19,6 +20,7 @@ class ImageFitness
     private
     {
         SuperImage destination;
+        Tid threadId;
         double bestFitness = double.max;
 
         struct Rect
@@ -46,8 +48,9 @@ class ImageFitness
         }
     }
 
-    this(string path)
+    this(string path, Tid id)
     {
+        threadId = id;
         destination = loadImage(path);
     }
 
@@ -71,46 +74,7 @@ class ImageFitness
         }
     }
 
-    sfmlImage.Image convertSImage(SuperImage img)
-    {
-        auto im = dlib.image.convert!(ImageRGBA8)(img);
-        auto image = new sfmlImage.Image();
-        auto pixels = im.data;
-        image.create(img.width, img.height, pixels);
-        return image;
-    }
-
-    void printWindow(SuperImage inImage)
-    {
-        ushort vectorX = 64;
-        ushort vectorY = 64;
-        auto sprite = new Sprite;
-        auto texture = new Texture;
-        auto convImage = convertSImage(inImage);
-        auto window = new RenderWindow(
-                VideoMode(vectorX, vectorY),
-                "Genetický algoritmus"
-                );
-        texture.loadFromImage(convImage);
-        sprite.setTexture(texture, true);
-
-        while (window.isOpen())
-        {
-            Event event;
-            while(window.pollEvent(event))
-            {
-                if(event.type == event.EventType.Closed)
-                {
-                    window.close();
-                }
-            }
-            window.clear(Color.White);
-            window.draw(sprite);
-            window.display();
-        }
-    }
-
-    double opCall(ref BitArray genom)
+        double opCall(ref BitArray genom)
     {
         SuperImage source = image(destination.width, destination.height);
         Rect[] shapes;
@@ -125,20 +89,73 @@ class ImageFitness
         auto fitness = meanSquaredError(source.data, destination.data);
         if(fitness < bestFitness)
         {
+            send(threadId, cast (immutable SuperImage) source);
             source.saveImage("last.png");
-            printWindow(source);
             bestFitness = fitness;
         }
         return fitness;
     }
 }
 
+
+sfmlImage.Image dlibImageToSfmlImage(SuperImage img)
+{
+    auto im = dlib.image.convert!(ImageRGBA8)(img);
+    auto image = new sfmlImage.Image();
+    auto pixels = im.data;
+    image.create(img.width, img.height, pixels);
+    return image;
+}
+
+void loadImageIntoSprite(SuperImage img, ref Sprite sprite)
+{
+    if(sprite is null) sprite = new Sprite;
+    sfmlImage.Image sfmlImg = img.dlibImageToSfmlImage;
+    auto texture = new Texture;
+    texture.loadFromImage(sfmlImg);
+    sprite.setTexture(texture, true);
+}
+
+void gaThread(in Options options,Tid someId)
+{
+    ImageFitness fitness = new ImageFitness(options.input, someId);
+    geneticAlgorithm!fitness(fitness.populationSize * options.shapeCount, 0.0, 50, options.mutation, options.countEpoch, options.forever);
+}
+
+import core.sync.mutex;
+
 void draw(in Options options)
 {
-    ImageFitness fitness = new ImageFitness(options.input);
-    geneticAlgorithm!(fitness)(fitness.populationSize * options.shapeCount, 0.0, 50, options.mutation, options
-    .countEpoch,
-    options.forever);
+    auto threadId = spawn(&gaThread, options,thisTid);
+    ushort vectorX = 64;
+    ushort vectorY = 64;
+    core.sync.mutex.Mutex mutex = new core.sync.mutex.Mutex();
+    Sprite sprite; //= new Sprite;
+    auto window = new RenderWindow(
+            VideoMode(vectorX, vectorY),
+            "Genetický algoritmus"
+            );
+
+    while (window.isOpen())
+    {
+        receiveTimeout(100.msecs, (SuperImage img)
+                {
+                loadImageIntoSprite(img, sprite);
+                });
+        Event event;
+        while(window.pollEvent(event))
+        {
+            if(event.type == event.EventType.Closed)
+            {
+                window.close();
+            }
+        }
+        window.clear(Color.White);
+        mutex.lock();
+        window.draw(sprite);
+        mutex.unlock();
+        window.display();
+    }
 }
 
 void main(string[] argv)
