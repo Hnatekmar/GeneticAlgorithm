@@ -96,8 +96,12 @@ struct RectangleRasterizer
 
     static void rasterizeShape(ubyte16[] image, size_t imageW, size_t imageH, ref BitArray arr, size_t offset)
     {
+        import core.simd : __simd, __simd_ib, XMM, ushort8, uint4;
         import dlib.image : color4, Color4, Color4f, alphaOver;
+        import std.algorithm : min;
+
         import decoder : decoder, decodeBits;
+        import simdutil : unpacked;
 
         mixin decoder!("arr", "offset", 0,
                 "ubyte", 3, "r",
@@ -109,26 +113,101 @@ struct RectangleRasterizer
                 "ubyte", 6, "rectW",
                 "ubyte", 6, "rectH");
 
-        auto color = color4((r.extendColor << 24) | (g.extendColor << 16) | (b.extendColor << 8) | a.extendColor);
-        auto pixels = cast(ubyte[]) image;
-        foreach (x; rectX .. (rectX + rectW))
+        r = r.extendColor;
+        g = g.extendColor;
+        b = b.extendColor;
+        a = a.extendColor;
+
+        int left = rectX;
+        int right = min(rectX + rectW, imageW);
+        int top = rectY;
+        int bottom = min(rectY + rectH, imageH);
+
+        // align x coords to multiples of 4
+        int alignedLeft = (left + 3) & ~0x3;
+        int alignedRight = right & ~0x3;
+
+        ubyte16 zero = 0;
+        ushort8 alphaMult = ushort(a);
+        ushort8 negAlphaMult = ushort(255 - a);
+
+        // don't wanna alpha blend the alpha
+        alphaMult.unpacked[3] = alphaMult.unpacked[7] = 255;
+        negAlphaMult.unpacked[3] = negAlphaMult[7] = 255;
+
+        ushort8 color;
+        color.unpacked[] = [r, g, b, 255, r, g, b, 255];
+
+        ushort8 colorPremult = __simd(XMM.PMULLW, color, alphaMult);
+
+        foreach (y; top..bottom)
         {
-            foreach (y; rectY .. (rectY + rectH))
+            auto yIdx = y * imageW / 4;
+
+            for (auto x = alignedLeft; x < alignedRight; x += 4)
             {
-                if (x >= 0 &&
-                        x < imageW &&
-                        y >= 0 &&
-                        y < imageH)
-                {
-                    auto idx = (y * imageW + x) * 4;
-                    auto pixel = Color4f(Color4(pixels[idx], pixels[idx + 1], pixels[idx + 2], pixels[idx + 3]), 8);
-                    auto newPixel = alphaOver(pixel, color).convert(8);
-                    pixels[idx] = cast(ubyte) newPixel[0];
-                    pixels[idx + 1] = cast(ubyte) newPixel[1];
-                    pixels[idx + 2] = cast(ubyte) newPixel[2];
-                    pixels[idx + 3] = cast(ubyte) newPixel[3];
-                }
+                auto idx = yIdx + x / 4;
+                ubyte16 pixels = image[idx];
+
+                // extend pixels to 16bit so we can alpha blend
+                ushort8 lPixels = __simd(XMM.PUNPCKLBW, pixels, zero);
+                ushort8 hPixels = __simd(XMM.PUNPCKHBW, pixels, zero);
+
+                // multiply by the negated alpha
+                lPixels = __simd(XMM.PMULLW, lPixels, negAlphaMult);
+                hPixels = __simd(XMM.PMULLW, hPixels, negAlphaMult);
+
+                // add the premultiplied color
+                lPixels = __simd(XMM.PADDUSW, lPixels, colorPremult);
+                hPixels = __simd(XMM.PADDUSW, hPixels, colorPremult);
+
+                // divide by 256 (although this should really be dividing by 255, but eh)
+                lPixels = __simd_ib(XMM.PSRLW, lPixels, 8);
+                hPixels = __simd_ib(XMM.PSRLW, hPixels, 8);
+
+                // pack it back
+                image[idx] = __simd(XMM.PACKUSWB, lPixels, hPixels);
             }
         }
+
+        void withMask(int x, uint4 inMask)
+        {
+            ubyte16 mask = inMask;
+            auto negMask = ~mask;
+            foreach (y; top..bottom)
+            {
+                auto idx = (y * imageW + x) / 4;
+                ubyte16 pixels = image[idx];
+
+                // extend pixels to 16bit so we can alpha blend
+                ushort8 lPixels = __simd(XMM.PUNPCKLBW, pixels, zero);
+                ushort8 hPixels = __simd(XMM.PUNPCKHBW, pixels, zero);
+
+                // multiply by the negated alpha
+                lPixels = __simd(XMM.PMULLW, lPixels, negAlphaMult);
+                hPixels = __simd(XMM.PMULLW, hPixels, negAlphaMult);
+
+                // add the premultiplied color
+                lPixels = __simd(XMM.PADDUSW, lPixels, colorPremult);
+                hPixels = __simd(XMM.PADDUSW, hPixels, colorPremult);
+
+                // divide by 256 (although this should really be dividing by 255, but eh)
+                lPixels = __simd_ib(XMM.PSRLW, lPixels, 8);
+                hPixels = __simd_ib(XMM.PSRLW, hPixels, 8);
+
+                // pakc it back
+                ubyte16 packed = __simd(XMM.PACKUSWB, lPixels, hPixels);
+
+                // mask it ad store it
+                image[idx] = (negMask & pixels) | (mask & packed);
+            }
+        }
+
+        uint4 mask = ~0;
+        mask[0..alignedLeft - left][] = 0;
+        withMask(left, mask);
+
+        mask[] = 0;
+        mask[0..right - alignedRight][] = ~0;
     }
 }
