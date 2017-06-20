@@ -9,6 +9,9 @@ import util;
 import decoder;
 import dlib.image;
 import dlib.image.color: color4;
+import dsfml.window;
+import dsfml.graphics;
+import sfmlImage = dsfml.graphics.image;
 
 class ImageFitness
 {
@@ -69,6 +72,45 @@ class ImageFitness
         }
     }
 
+    sfmlImage.Image convertSImage(SuperImage img)
+    {
+        auto im = dlib.image.convert!(ImageRGBA8)(img);
+        auto image = new sfmlImage.Image();
+        auto pixels = im.data;
+        image.create(img.width, img.height, pixels);
+        return image;
+    }
+
+    void printWindow(SuperImage inImage)
+    {
+        ushort vectorX = 64;
+        ushort vectorY = 64;
+        auto sprite = new Sprite;
+        auto texture = new Texture;
+        auto convImage = convertSImage(inImage);
+        auto window = new RenderWindow(
+                VideoMode(vectorX, vectorY),
+                "Genetický algoritmus"
+                );
+        texture.loadFromImage(convImage);
+        sprite.setTexture(texture, true);
+
+        while (window.isOpen())
+        {
+            Event event;
+            while(window.pollEvent(event))
+            {
+                if(event.type == event.EventType.Closed)
+                {
+                    window.close();
+                }
+            }
+            window.clear(Color.White);
+            window.draw(sprite);
+            window.display();
+        }
+    }
+
     double opCall(ref BitArray genom)
     {
         SuperImage source = image(destination.width, destination.height);
@@ -84,13 +126,14 @@ class ImageFitness
         if(fitness < bestFitness)
         {
             source.saveImage("last.png");
+            printWindow(source);
             bestFitness = fitness;
         }
         return fitness;
     }
 }
 
-void draw(string input,float mutation)
+void draw(string input, float mutation)
 {
     ImageFitness fitness = new ImageFitness(input);
     const uint NUMBER_OF_RECTANGLES = 20;
