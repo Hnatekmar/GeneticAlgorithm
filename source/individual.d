@@ -15,8 +15,7 @@ class Individual(alias fitnessFn)
 
     static this()
     {
-        auto ct = Clock.currTime();
-        gen.seed(cast(uint)(ct.toUnixTime()));
+        gen.seed(unpredictableSeed);
     }
 
     this(BitArray array, bool recalculateFitness = true)
@@ -52,7 +51,7 @@ class Individual(alias fitnessFn)
 
     Individual crossover(Individual individual)
     {
-        size_t gate = uniform(2, individual.representation.length - 1, gen);
+        size_t gate = uniform(1, individual.representation.length - 2, gen);
         BitArray bitMask = BitArray(new bool[individual.representation.length()]);
         size_t it = 0;
         while(it < gate)
