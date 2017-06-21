@@ -9,6 +9,11 @@ import util;
 import decoder;
 import dlib.image;
 import dlib.image.color: color4;
+import dsfml.window;
+import dsfml.graphics;
+import dsfml.graphics.image;
+alias sfmlImage = dsfml.graphics.image.Image;
+import std.concurrency;
 
 class ImageFitness
 {
@@ -16,6 +21,7 @@ class ImageFitness
     private
     {
         SuperImage destination;
+        Tid threadId;
         double bestFitness = double.max;
 
         struct Rect
@@ -43,8 +49,9 @@ class ImageFitness
         }
     }
 
-    this(string path)
+    this(string path, Tid id)
     {
+        threadId = id;
         destination = loadImage(path);
     }
 
@@ -68,6 +75,15 @@ class ImageFitness
         }
     }
 
+    sfmlImage dlibImageToSfmlImage(SuperImage img)
+    {
+        auto im = dlib.image.convert!(ImageRGBA8)(img);
+        auto image = new sfmlImage();
+        auto pixels = im.data;
+        image.create(img.width, img.height, pixels);
+        return image;
+    }
+
     double opCall(ref BitArray genom)
     {
         SuperImage source = image(destination.width, destination.height);
@@ -83,6 +99,7 @@ class ImageFitness
         auto fitness = meanSquaredError(source.data, destination.data);
         if(fitness < bestFitness)
         {
+            send(threadId, cast(shared) dlibImageToSfmlImage(source));
             source.saveImage("last.png");
             bestFitness = fitness;
         }
@@ -90,12 +107,51 @@ class ImageFitness
     }
 }
 
+
+
+void loadImageIntoSprite(sfmlImage sfmlImg, ref Sprite sprite)
+{
+    if(sprite is null) sprite = new Sprite;
+    auto texture = new Texture;
+    texture.loadFromImage(sfmlImg);
+    sprite.setTexture(texture, true);
+}
+
+void gaThread(in Options options, Tid someId)
+{
+    ImageFitness fitness = new ImageFitness(options.input, someId);
+    geneticAlgorithm!fitness(fitness.populationSize * options.shapeCount, 0.0, 50, options.mutation, options.countEpoch, options.forever);
+}
+
 void draw(in Options options)
 {
-    ImageFitness fitness = new ImageFitness(options.input);
-    geneticAlgorithm!(fitness)(fitness.populationSize * options.shapeCount, 0.0, 50, options.mutation, options
-    .countEpoch,
-    options.forever);
+    auto threadId = spawn(&gaThread, options, thisTid);
+    ushort vectorX = 64;
+    ushort vectorY = 64;
+    Sprite sprite;
+    auto window = new RenderWindow(
+            VideoMode(vectorX, vectorY),
+            "Genetický algoritmus"
+            );
+
+    while (window.isOpen())
+    {
+        Event event;
+        while(window.pollEvent(event))
+        {
+            if(event.type == event.EventType.Closed)
+            {
+                window.close();
+            }
+        }
+        receiveTimeout(100.msecs, (shared sfmlImage img)
+                {
+                    loadImageIntoSprite(cast(sfmlImage) img, sprite);
+                });
+        window.clear(Color.White);
+        if(sprite !is null) window.draw(sprite);
+        window.display();
+    }
 }
 
 void main(string[] argv)

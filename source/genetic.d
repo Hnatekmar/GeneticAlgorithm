@@ -52,6 +52,8 @@ Individual!fitness[] evolvePopulation(alias fitness)(Individual!fitness[] popula
 Individual!fitness geneticAlgorithm(alias fitness)(size_t genomSize, double requiredFitness, size_t populationSize,
                                                     float mutationRate, size_t generationMax, bool infinite = false)
 {
+    import std.concurrency;
+    import std.datetime;
     import std.stdio: writeln;
     Individual!fitness[] current;
     current.reserve(populationSize);
@@ -61,7 +63,8 @@ Individual!fitness geneticAlgorithm(alias fitness)(size_t genomSize, double requ
     }
     size_t generationNumber = 0;
     double bestFitness = double.max;
-    while(current.getFittest.fitness > requiredFitness)
+    bool running = true;
+    while(current.getFittest.fitness > requiredFitness && running)
     {
         current = current.evolvePopulation!fitness(mutationRate);
         auto fittest = current.getFittest!fitness();
@@ -72,6 +75,7 @@ Individual!fitness geneticAlgorithm(alias fitness)(size_t genomSize, double requ
         }
         generationNumber += 1;
         if(generationNumber >= generationMax && !infinite) break;
+        receiveTimeout(1.msecs, (OwnerTerminated own) { running = false; });
     }
     return current.getFittest();
 }
