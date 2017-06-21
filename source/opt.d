@@ -3,13 +3,15 @@ import std.file;
 import std.stdio;
 import core.stdc.stdlib;
 
+enum ShapeType{circle, rectangle};
 struct Options
 {
+    bool forever;
+    ShapeType type = ShapeType.rectangle;
     ulong maxEpoch = 10_000;
     ulong shapeCount = 100;
     float mutation = 0.001;
     string input;
-    bool forever;
 }
 
 Options getOptions(string[] args)
@@ -20,10 +22,11 @@ Options getOptions(string[] args)
         auto helpInformation = getopt(
                 args,
                 "epoch|e", "Counting epoch, number (ulong).", &options.maxEpoch,
+                "shape|s", "Which shape should be used for approximation (circle, rectangle)", &options.type,
                 "mutation|m", "Mutation, how large mutation is, value MUST be between 0.0 and 1",
                 &options.mutation,
                 "forever|f", "Run program forever", &options.forever,
-                "shapeCount|s", "Number of shapes used for approximation (s > 0)", &options.shapeCount,
+                "shapeCount|c", "Number of shapes used for approximation (s > 0)", &options.shapeCount,
                 config.required,
                 "input|i", "This is the image you MUST input", &options.input
                 );
