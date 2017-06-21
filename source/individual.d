@@ -15,8 +15,7 @@ class Individual(alias fitnessFn)
 
     static this()
     {
-        auto ct = Clock.currTime();
-        gen.seed(cast(uint)(ct.toUnixTime()));
+        gen.seed(unpredictableSeed);
     }
 
     this(BitArray array, bool recalculateFitness = true)
