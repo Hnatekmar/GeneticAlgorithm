@@ -28,8 +28,8 @@ Options getOptions(string[] args)
     string input;
     ulong countEpoch = 10_000;
     float mutationNumber = 0.99f;
-    float probability = 0.01;
-    ulong shapeCount = 50;
+    float probability = 0.001;
+    ulong shapeCount = 100;
     bool forever = false;
     try
     {
