@@ -69,7 +69,8 @@ class ImageFitness
 void gaThread(in Options options, Tid someId)
 {
     ImageFitness fitness = new ImageFitness(options.input, someId);
-    geneticAlgorithm!fitness(fitness.populationSize * options.shapeCount, 0.0, 50, options.mutation, options.countEpoch, options.forever);
+    geneticAlgorithm!fitness(fitness.populationSize * options.shapeCount, 0.0, 50, options.mutation, options.maxEpoch,
+    options.forever);
 }
 
 void drawingThread(in Options options)
