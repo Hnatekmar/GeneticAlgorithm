@@ -1,52 +1,57 @@
 import opt;
 import genetic;
-import std.stdio;
 import std.bitmanip;
-import std.random;
-import std.exception;
-import std.math;
 import util;
-import decoder;
-import dlib.image;
-import dlib.image.color: color4;
-import dsfml.window;
 import dsfml.graphics;
 import dsfml.graphics.image;
-alias sfmlImage = dsfml.graphics.image.Image;
 import std.concurrency;
+import dlib.image.color: color4;
+import dlib.image;
+import type;
+import draw;
+import decoder;
 
-class ImageFitness
+enum rectangleGenomSize = 32 + 4 * 6;
+draw.Rect toRectangle(ref BitArray genom)
 {
-    immutable populationSize = 32 + 4 * 6;
+    mixin(decoder.decoder!("genom",
+                "int",  32, "color",
+                "ubyte", 6, "x",
+                "ubyte", 6, "y",
+                "ubyte", 6, "width",
+                "ubyte", 6, "height")());
+    draw.Rect shape;
+    shape.color = color4(color);
+    shape.x = x;
+    shape.y = y;
+    shape.width = width;
+    shape.height = height;
+    return shape;
+}
+
+enum circleGenomSize = 32 + 2 * 6 + 5;
+draw.Circle toCircle(ref BitArray genom)
+{
+    mixin(decoder.decoder!("genom",
+                "int",  32, "color",
+                "ubyte", 6, "x",
+                "ubyte", 6, "y",
+                "ushort", 5, "radius")());
+    draw.Circle shape;
+    shape.color = color4(color);
+    shape.x = x;
+    shape.y = y;
+    shape.radius = radius;
+    return shape;
+}
+
+class ImageFitness(alias toShape, alias rasterizer, size_t genomSize)
+{
     private
     {
         SuperImage destination;
         Tid threadId;
         double bestFitness = double.max;
-
-        struct Rect
-        {
-            Color4f color;
-            ubyte x, y;
-            ushort width, height;
-        }
-
-        Rect toShape(ref BitArray genom)
-        {
-            mixin(decoder.decoder!("genom",
-                        "int",  32, "color",
-                        "ubyte", 6, "x",
-                        "ubyte", 6, "y",
-                        "ubyte", 6, "width",
-                        "ubyte", 6, "height")());
-            Rect shape;
-            shape.color = color4(color);
-            shape.x = x;
-            shape.y = y;
-            shape.width = width;
-            shape.height = height;
-            return shape;
-        }
     }
 
     this(string path, Tid id)
@@ -55,47 +60,19 @@ class ImageFitness
         destination = loadImage(path);
     }
 
-    void rasterize(ref SuperImage image, in Rect[] rects)
-    {
-        foreach(ref rect; rects)
-        {
-            foreach(x; rect.x .. (rect.x + rect.width))
-            {
-                foreach(y; rect.y .. (rect.y + rect.height))
-                {
-                    if( x >= 0 &&
-                        x < image.width &&
-                        y >= 0 &&
-                        y < image.height)
-                    {
-                        image[x, y] = alphaOver(image[x, y], rect.color);
-                    }
-                }
-            }
-        }
-    }
-
-    sfmlImage dlibImageToSfmlImage(SuperImage img)
-    {
-        auto im = dlib.image.convert!(ImageRGBA8)(img);
-        auto image = new sfmlImage();
-        auto pixels = im.data;
-        image.create(img.width, img.height, pixels);
-        return image;
-    }
-
     double opCall(ref BitArray genom)
     {
+        import std.traits: ReturnType;
         SuperImage source = image(destination.width, destination.height);
-        Rect[] shapes;
-        size_t numberOfShapesInPopulation = genom.length / populationSize;
+        ReturnType!toShape[] shapes;
+        size_t numberOfShapesInPopulation = genom.length / genomSize;
         shapes.reserve(numberOfShapesInPopulation);
         foreach(index; 0 .. numberOfShapesInPopulation)
         {
-            auto circle = subArray(genom, index * populationSize, index * populationSize + populationSize);
-            shapes ~= toShape(circle);
+            auto shape = subArray(genom, index * genomSize, index * genomSize + genomSize);
+            shapes ~= toShape(shape);
         }
-        rasterize(source, shapes);
+        rasterizer(source, shapes);
         auto fitness = meanSquaredError(source.data, destination.data);
         if(fitness < bestFitness)
         {
@@ -107,25 +84,34 @@ class ImageFitness
     }
 }
 
-
-
-void loadImageIntoSprite(sfmlImage sfmlImg, ref Sprite sprite)
+void gaCircle(in Options options, Tid someId)
 {
-    if(sprite is null) sprite = new Sprite;
-    auto texture = new Texture;
-    texture.loadFromImage(sfmlImg);
-    sprite.setTexture(texture, true);
+            auto fitness = new ImageFitness!(toCircle, rasterizeCircles, circleGenomSize)(options.input, someId);
+            geneticAlgorithm!fitness(circleGenomSize * options.shapeCount, 0.0, 50, options.mutation, options.maxEpoch,
+            options.forever);
 }
 
-void gaThread(in Options options, Tid someId)
+void gaRectangle(in Options options, Tid someId)
 {
-    ImageFitness fitness = new ImageFitness(options.input, someId);
-    geneticAlgorithm!fitness(fitness.populationSize * options.shapeCount, 0.0, 50, options.mutation, options.countEpoch, options.forever);
+    auto fitness = new ImageFitness!(toRectangle, rasterizeRectangles, rectangleGenomSize)(options.input,
+    someId);
+    geneticAlgorithm!fitness(rectangleGenomSize * options.shapeCount, 0.0, 50, options.mutation, options.maxEpoch,
+    options.forever);
 }
 
-void draw(in Options options)
+void drawingThread(in Options options)
 {
-    auto threadId = spawn(&gaThread, options, thisTid);
+    import dsfml.window;
+
+    Tid threadId;
+    if(options.type == ShapeType.circle)
+    {
+        threadId = spawn(&gaCircle, options, thisTid);
+    }
+    if(options.type == ShapeType.rectangle)
+    {
+        threadId = spawn(&gaRectangle, options, thisTid);
+    }
     ushort vectorX = 64;
     ushort vectorY = 64;
     Sprite sprite;
@@ -144,9 +130,9 @@ void draw(in Options options)
                 window.close();
             }
         }
-        receiveTimeout(100.msecs, (shared sfmlImage img)
+        receiveTimeout(100.msecs, (shared SfmlImage img)
                 {
-                    loadImageIntoSprite(cast(sfmlImage) img, sprite);
+                    loadImageIntoSprite(cast(SfmlImage) img, sprite);
                 });
         window.clear(Color.White);
         if(sprite !is null) window.draw(sprite);
@@ -157,5 +143,5 @@ void draw(in Options options)
 void main(string[] argv)
 {
     auto data = getOptions(argv);
-    draw(data);
+    drawingThread(data);
 }

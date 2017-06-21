@@ -36,6 +36,6 @@ install:
        fi'
 
 script:
-    - dub test --compiler=$DC --config=genetic
-    - dub test --compiler=$DC --config=benchmark
+    - dub build --compiler=$DC --config=genetic
+    - dub build --compiler=$DC --config=benchmark
 

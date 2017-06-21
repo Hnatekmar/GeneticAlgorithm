@@ -3,60 +3,47 @@ import std.file;
 import std.stdio;
 import core.stdc.stdlib;
 
-struct Options {
-
-    ulong countEpoch;
-    float mutation;
-    string input;
-    float probability;
+enum ShapeType{circle, rectangle};
+struct Options
+{
     bool forever;
-    ulong shapeCount;
-
-    this(string inp, float mutate, ulong  count, float prob, bool forever, ulong shapeCount)
-    {
-        this.input = inp;
-        this.mutation = mutate;
-        this.countEpoch = count;
-        this.probability = prob;
-        this.forever = forever;
-        this.shapeCount = shapeCount;
-    }
+    ShapeType type = ShapeType.rectangle;
+    ulong maxEpoch = 10_000;
+    ulong shapeCount = 100;
+    float mutation = 0.001;
+    string input;
 }
 
 Options getOptions(string[] args)
 {
-    string input;
-    ulong countEpoch = 10_000;
-    float mutationNumber = 0.99f;
-    float probability = 0.001;
-    ulong shapeCount = 100;
-    bool forever = false;
+    Options options;
     try
     {
         auto helpInformation = getopt(
                 args,
-                "epoch|e", "Counting epoch, number (ulong).", &countEpoch,
-                "probability|p", "Number (float) representing probability.", &probability,
-                "mutation|m", "Mutation, how large mutation is, value MUST be between 0.0 and 1", &mutationNumber,
-                "forever|f", "Run program forever", &forever,
-                "shapeCount|s", "Number of shapes used for approximation (s > 0)", &shapeCount,
+                "epoch|e", "Counting epoch, number (ulong).", &options.maxEpoch,
+                "shape|s", "Which shape should be used for approximation (circle, rectangle)", &options.type,
+                "mutation|m", "Mutation, how large mutation is, value MUST be between 0.0 and 1",
+                &options.mutation,
+                "forever|f", "Run program forever", &options.forever,
+                "shapeCount|c", "Number of shapes used for approximation (s > 0)", &options.shapeCount,
                 config.required,
-                "input|i", "This is the image you MUST input", &input
+                "input|i", "This is the image you MUST input", &options.input
                 );
 
-        if (!input.exists && input != "")
+        if (!options.input.exists && options.input != "")
         {
             helpInformation.helpWanted = true;
-            stderr.writeln("ERROR: File you tried to input " ~ input ~ " does not exists!");
+            stderr.writeln("ERROR: File you tried to input " ~ options.input ~ " does not exists!");
         }
 
-        if(!(mutationNumber >= 0.0f && mutationNumber <= 1.0f))
+        if(!(options.mutation >= 0.0f && options.mutation <= 1.0f))
         {
             helpInformation.helpWanted = true;
             stderr.writeln("ERROR: Mutation value is not correct");
         }
 
-        if (shapeCount == 0)
+        if (options.shapeCount == 0)
         {
             helpInformation.helpWanted = true;
             stderr.writeln("ERROR: number of shapes has to be at least 1");
@@ -80,5 +67,5 @@ Options getOptions(string[] args)
         stderr.writeln(e.msg);
         exit(-1);
     }
-    return Options(input, mutationNumber, countEpoch, probability, forever, shapeCount);
+    return options;
 }
