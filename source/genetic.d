@@ -75,7 +75,7 @@ Individual!fitness geneticAlgorithm(alias fitness)(size_t genomSize, double requ
         }
         generationNumber += 1;
         if(generationNumber >= generationMax && !infinite) break;
-        receiveTimeout(1.msecs, (OwnerTerminated own) { running = false; });
+        receiveTimeout(-1.msecs, (OwnerTerminated own) { running = false; });
     }
     return current.getFittest();
 }
