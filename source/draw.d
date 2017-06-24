@@ -19,13 +19,15 @@ struct Circle
 
 void rasterizeRectangles(ref SuperImage image, in Rect[] rects)
 {
+    import std.range: iota;
+    import std.parallelism: parallel;
     foreach(ref rect; rects)
     {
         auto fromX = max(rect.x, 0);
         auto toX = min(rect.x + rect.width, image.width());
         auto fromY = max(rect.y, 0);
         auto toY = min(rect.y + rect.height, image.height());
-        foreach(x; fromX .. toX)
+        foreach(x; parallel(iota(fromX, toX)))
         {
             foreach(y; fromY .. toY)
             {
