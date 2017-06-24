@@ -8,8 +8,8 @@ struct Options
 {
     bool forever;
     ShapeType type = ShapeType.rectangle;
-    ulong maxEpoch = 10_000;
-    ulong shapeCount = 100;
+    size_t maxEpoch = 10_000;
+    size_t shapeCount = 100;
     float mutation = 0.001;
     string input;
 }
