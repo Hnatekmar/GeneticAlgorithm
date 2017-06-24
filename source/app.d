@@ -86,9 +86,10 @@ class ImageFitness(alias toShape, alias rasterizer, size_t genomSize)
 
 void gaCircle(in Options options, Tid someId)
 {
-            auto fitness = new ImageFitness!(toCircle, rasterizeCircles, circleGenomSize)(options.input, someId);
-            geneticAlgorithm!fitness(circleGenomSize * options.shapeCount, 0.0, 50, options.mutation, options.maxEpoch,
-            options.forever);
+    auto fitness = new ImageFitness!(toCircle, rasterizeCircles, circleGenomSize)(options.input, someId);
+    geneticAlgorithm!fitness(circleGenomSize * options.shapeCount, 0.0, 50, options.mutation, options.maxEpoch,
+    options.forever);
+    send(ownerTid, true);
 }
 
 void gaRectangle(in Options options, Tid someId)
@@ -97,6 +98,7 @@ void gaRectangle(in Options options, Tid someId)
     someId);
     geneticAlgorithm!fitness(rectangleGenomSize * options.shapeCount, 0.0, 50, options.mutation, options.maxEpoch,
     options.forever);
+    send(ownerTid, true);
 }
 
 void drawingThread(in Options options)
@@ -120,6 +122,7 @@ void drawingThread(in Options options)
             "Genetický algoritmus"
             );
 
+    bool stop = false;
     while (window.isOpen())
     {
         Event event;
@@ -133,7 +136,16 @@ void drawingThread(in Options options)
         receiveTimeout(100.msecs, (shared SfmlImage img)
                 {
                     loadImageIntoSprite(cast(SfmlImage) img, sprite);
+                },
+                (bool _)
+                {
+                    stop = true;
                 });
+        if(stop)
+        {
+            window.close();
+            break;
+        }
         window.clear(Color.White);
         if(sprite !is null) window.draw(sprite);
         window.display();
