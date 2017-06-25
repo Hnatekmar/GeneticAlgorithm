@@ -17,10 +17,11 @@ struct Circle
     ushort radius;
 }
 
+import std.range: iota;
+import std.parallelism: parallel;
+
 void rasterizeRectangles(ref SuperImage image, in Rect[] rects)
 {
-    import std.range: iota;
-    import std.parallelism: parallel;
     foreach(ref rect; rects)
     {
         auto fromX = max(rect.x, 0);
@@ -46,7 +47,7 @@ void rasterizeCircles(ref SuperImage image, in Circle[] circles)
         auto fromY = max(circle.y - circle.radius, 0);
         auto toY = min(circle.y + circle.radius, image.height());
 
-        foreach(x; fromX .. toX)
+        foreach(x; parallel(iota(fromX, toX)))
         {
             foreach(y; fromY .. toY)
             {
