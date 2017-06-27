@@ -2,11 +2,11 @@
 	"name": "genetic_algorithm",
 	"authors": [
 		"Aleš Lerch",
-		"Martin Hnátek"
+		"Martin Hnátek",
+		"Zdeněk 'TopČlověk' Biberle"
 	],
     "lflags" : ["-LDSFMLC/lib"],
 	"dependencies": {
-        "dsfml:graphics": "~>2.1",
 		"dlib": "~>0.11.1"
 	},
 	"configurations": [
